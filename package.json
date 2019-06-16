@@ -37,9 +37,7 @@
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
   },
-  "dependencies": {
-    "crypto-js": "^3.1.9-1"
-  },
+  "dependencies": {},
   "deprecated": false,
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "devDependencies": {
