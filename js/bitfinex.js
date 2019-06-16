@@ -574,90 +574,99 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchLoanBalance(params = {}) {
-        const response = await this.privatePostBalances(this.extend());
+    async fetchLoanBalance (params = {}) {
+        const response = await this.privatePostBalances (this.extend ());
         let balances = {};
-        response.forEach(function (wallet) {
-            if (wallet['type'] === 'deposit' && parseFloat(wallet['available']) !== 0){
-                balances[wallet['currency'].upper()] = parseFloat(wallet['available'])
+        response.forEach (function (wallet) {
+            if (wallet['type'] === 'deposit' && parseFloat (wallet['available']) !== 0) {
+                balances[wallet['currency'].toUpperCase ()] = parseFloat (wallet['available']);
             }
         });
         return balances;
     }
 
-    async fetchLoanBook(symbol, count = 1) {
-        const response = await this.publicGetLendbookCurrency(this.extend({
+    async fetchLoanBook (symbol, count = 1) {
+        const response = await this.publicGetLendbookCurrency (this.extend ({
             'currency': symbol,
             'limit_bids': 0,
-            'limit_asks': count
-        }));
+            'limit_asks': count}));
         let offers = [];
         response.asks.forEach(function (offer) {
-            offers.push({
-                'rate': parseFloat(offer['rate']),
-                'amount': parseFloat(offer['amount'])
-            });
+            offers.push ({
+                'rate': parseFloat (offer['rate']),
+                'amount': parseFloat (offer['amount']) });
         });
         return offers;
     }
 
-    async fetchOpenLoans(symbol) {
-        const response = await this.privatePostOffers();
-
+    async fetchOpenLoans (symbol) {
+        const response = await this.privatePostOffers ();
         let offers = [];
-        response.forEach(function (offer) {
+        response.forEach (function (offer) {
             if (offer['currency'] === symbol && !offer['is_cancelled']){
-                offers.push({
+                offers.push ({
                     'order_id': offer['id'],
                     'symbol': offer['currency'],
-                    'rate': parseFloat(offer['rate']) / 365,
-                    'amount': parseFloat(offer['original_amount']),
-                    'duration': parseFloat(offer['period']),
-                    'date': parseInt(offer['timestamp'])
-                });
+                    'rate': parseFloat (offer['rate']) / 365,
+                    'amount': parseFloat (offer['original_amount']),
+                    'duration': parseFloat (offer['period']),
+                    'date': parseInt (offer['timestamp'])});
             }
         });
         return offers;
     }
 
     async fetchActiveLoans() {
-        const response = await this.privatePostCredits();
+        const response = await this.privatePostCredits ();
 
         let offers = [];
-        response.forEach(function (offer) {
-            offers.push({
-                order_id: offer['id'],
-                symbol: offer['currency'],
-                rate: parseFloat(offer['rate']) / 365,
-                amount: parseFloat(offer['amount']),
-                duration: parseFloat(offer['period']),
-                date: parseInt(offer['timestamp'])
-            });
+        response.forEach (function (offer) {
+            offers.push ({
+                'order_id': offer['id'],
+                'symbol': offer['currency'],
+                'rate': parseFloat (offer['rate']) / 365,
+                'amount': parseFloat (offer['amount']),
+                'duration': parseFloat (offer['period']),
+                'date': parseInt (offer['timestamp']) });
         });
         return offers;
     }
 
-    async fetchLoansHistory(start, end) {
-        const response = await this.privatePostOffersHist();
+    async fetchLoansHistory (start, end) {
+        const response = await this.privatePostOffersHist ();
         let offers = [];
-        response.forEach(function (offer) {
-            if (start < parseInt(offer['timestamp']) < end){
+        response.forEach (function (offer) {
+            if (start < parseInt(offer['timestamp']) < end) {
                 const per = 2;
-                let earn = parseFloat(offer['rate']) / 365 * parseFloat(offer['period']) * parseFloat(offer['executed_amount']) / 100;
-                let fee = earn * per / 100;
-                offers.push({
+                const earn = parseFloat (offer['rate']) / 365 * parseFloat (offer['period']) * parseFloat (offer['executed_amount']) / 100;
+                const fee = earn * per / 100;
+                offers.push ({
                     'order_id': offer['id'],
                     'symbol': offer['currency'],
-                    'rate': parseFloat(offer['rate']) / 365,
-                    'amount': parseFloat(offer['original_amount']),
-                    'duration': parseFloat(offer['period']),
+                    'rate': parseFloat (offer['rate']) / 365,
+                    'amount': parseFloat (offer['original_amount']),
+                    'duration': parseFloat (offer['period']),
                     'earned': earn - fee,
                     'fee_asc': fee,
-                    'date': parseInt(offer['timestamp'])
-                });
+                    'date': parseInt (offer['timestamp']) });
             }
         });
         return offers;
+    }
+
+    async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
+        const response = await this.privatePostOfferNew (this.extend ({
+            'currency': symbol,
+            'amount': amount.toString (),
+            'period': duration,
+            'rate': rate.toString (),
+            'direction': 'lend',
+            'renew': renew }, params));
+        return { 'order_id': response['id'] };
+    }
+
+    async cancelLoanOrder (id, params = {}) {
+        return await this.privatePostOfferCancel (this.extend ({ 'offer_id': id }, params));
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

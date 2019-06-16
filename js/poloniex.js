@@ -293,6 +293,119 @@ module.exports = class poloniex extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchLoanBalance () {
+        const response = await this.privatePostReturnAvailableAccountBalances (this.extend ({ 'account': 'lending' }));
+
+        let balances = {};
+        response['lending'].forEach (function (symbol) {
+            balances[symbol] = parseFloat (response['lending'][symbol])
+        });
+        return balances;
+    }
+
+    async fetchLoanBook (symbol, count = 1) {
+        const response = await this.publicGetReturnLoanOrders (this.extend ({ 'currency': symbol }));
+        let offers = [];
+        response['offers'].forEach (function (offer) {
+            if (offers.length >= count) {
+                return false;
+            }
+            offers.push ({
+                'rate': parseFloat (offer['rate']),
+                'amount': parseFloat (offer['amount'])
+            });
+        });
+        return offers;
+    }
+
+    async fetch_open_loans (symbol) {
+        const response = await this.privatePostReturnOpenLoanOffers (this.extend ({ 'currency': symbol }));
+        let offers = [];
+        if (!(symbol in response)) {
+            return offers;
+        }
+        response[symbol].forEach (function (offer) {
+            offers.push ({
+                'order_id': offer['id'],
+                'symbol': symbol,
+                'rate': parseFloat (offer['rate']),
+                'amount': parseFloat (offer['amount']),
+                'duration': parseFloat (offer['duration']),
+                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ())
+            });
+        });
+        return offers;
+    }
+
+    async fetchActiveLoans () {
+        const response = await this.privatePostReturnActiveLoans ();
+
+        let offers = [];
+        response['provided'].forEach (function (offer) {
+            offers.push ({
+                'order_id': offer['id'],
+                'symbol': offer['currency'],
+                'rate': parseFloat (offer['rate']),
+                'amount': parseFloat (offer['amount']),
+                'duration': parseFloat (offer['duration']),
+                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ())
+            });
+        });
+        return offers;
+    }
+
+    async fetchLoansHistory (start, end) {
+        const response = await this.privatePostReturnLendingHistory (this.extend ({ 'start': start, 'end': end }));
+        let offers = [];
+        response.forEach ( function (offer) {
+            const per = 2;
+            const earn = parseFloat (offer['earned']);
+            const fee = earn * per / 100;
+            offers.push ({
+                'order_id': offer['id'],
+                'symbol': offer['currency'],
+                'rate': parseFloat (offer['rate']),
+                'amount': parseFloat (offer['amount']),
+                'duration': parseFloat (offer['duration']),
+                'earned': earn - fee,
+                'fee_asc': fee,
+                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ())
+            });
+        });
+        return offers;
+    }
+
+    async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
+        const response = await this.privatePostCreateLoanOffer (this.extend ({
+            'currency': symbol,
+            'amount': amount,
+            'duration': duration,
+            'autoRenew': renew,
+            'lendingRate': rate
+        }, params));
+        return await this.parseLoanOrder (response);
+    }
+
+    async cancel_loan_order (id, params = {}) {
+        const response = await this.privatePostCancelLoanOffer (this.extend ({
+            'orderNumber': id
+        }, params));
+        return response;
+    }
+
+    async fetchLoanOrders (symbol) {
+        const response = await this.publicGetReturnLoanOrders (this.extend ({
+            'currency': symbol
+        }));
+        return response;
+    }
+
+    async parseLoanOrder (data) {
+        if (data['success']) {
+            return { 'order_id': data['orderID'] };
+        }
+    }
+
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const fees = await this.privatePostReturnFeeInfo (params);
