@@ -318,7 +318,7 @@ module.exports = class poloniex extends Exchange {
         return offers;
     }
 
-    async fetch_open_loans (symbol) {
+    async fetchOpenLoans (symbol) {
         const response = await this.privatePostReturnOpenLoanOffers (this.extend ({ 'currency': symbol }));
         let offers = [];
         if (!(symbol in response)) {
@@ -386,7 +386,7 @@ module.exports = class poloniex extends Exchange {
         return await this.parseLoanOrder (response);
     }
 
-    async cancel_loan_order (id, params = {}) {
+    async cancelLoanOrder (id, params = {}) {
         const response = await this.privatePostCancelLoanOffer (this.extend ({
             'orderNumber': id
         }, params));
