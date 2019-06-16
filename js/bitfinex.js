@@ -574,6 +574,92 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
+    async fetchLoanBalance(params = {}) {
+        const response = await this.privatePostBalances(this.extend());
+        let balances = {};
+        response.forEach(function (wallet) {
+            if (wallet['type'] === 'deposit' && parseFloat(wallet['available']) !== 0){
+                balances[wallet['currency'].upper()] = parseFloat(wallet['available'])
+            }
+        });
+        return balances;
+    }
+
+    async fetchLoanBook(symbol, count = 1) {
+        const response = await this.publicGetLendbookCurrency(this.extend({
+            'currency': symbol,
+            'limit_bids': 0,
+            'limit_asks': count
+        }));
+        let offers = [];
+        response.asks.forEach(function (offer) {
+            offers.push({
+                'rate': parseFloat(offer['rate']),
+                'amount': parseFloat(offer['amount'])
+            });
+        });
+        return offers;
+    }
+
+    async fetchOpenLoans(symbol) {
+        const response = await this.privatePostOffers();
+
+        let offers = [];
+        response.forEach(function (offer) {
+            if (offer['currency'] === symbol && !offer['is_cancelled']){
+                offers.push({
+                    'order_id': offer['id'],
+                    'symbol': offer['currency'],
+                    'rate': parseFloat(offer['rate']) / 365,
+                    'amount': parseFloat(offer['original_amount']),
+                    'duration': parseFloat(offer['period']),
+                    'date': parseInt(offer['timestamp'])
+                });
+            }
+        });
+        return offers;
+    }
+
+    async fetchActiveLoans() {
+        const response = await this.privatePostCredits();
+
+        let offers = [];
+        response.forEach(function (offer) {
+            offers.push({
+                order_id: offer['id'],
+                symbol: offer['currency'],
+                rate: parseFloat(offer['rate']) / 365,
+                amount: parseFloat(offer['amount']),
+                duration: parseFloat(offer['period']),
+                date: parseInt(offer['timestamp'])
+            });
+        });
+        return offers;
+    }
+
+    async fetchLoansHistory(start, end) {
+        const response = await this.privatePostOffersHist();
+        let offers = [];
+        response.forEach(function (offer) {
+            if (start < parseInt(offer['timestamp']) < end){
+                const per = 2;
+                let earn = parseFloat(offer['rate']) / 365 * parseFloat(offer['period']) * parseFloat(offer['executed_amount']) / 100;
+                let fee = earn * per / 100;
+                offers.push({
+                    'order_id': offer['id'],
+                    'symbol': offer['currency'],
+                    'rate': parseFloat(offer['rate']) / 365,
+                    'amount': parseFloat(offer['original_amount']),
+                    'duration': parseFloat(offer['period']),
+                    'earned': earn - fee,
+                    'fee_asc': fee,
+                    'date': parseInt(offer['timestamp'])
+                });
+            }
+        });
+        return offers;
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
