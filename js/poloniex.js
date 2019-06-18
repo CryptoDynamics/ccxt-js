@@ -393,13 +393,6 @@ module.exports = class poloniex extends Exchange {
         return response;
     }
 
-    async fetchLoanOrders (symbol) {
-        const response = await this.publicGetReturnLoanOrders (this.extend ({
-            'currency': symbol
-        }));
-        return response;
-    }
-
     async parseLoanOrder (data) {
         if (data['success']) {
             return { 'order_id': data['orderID'] };
