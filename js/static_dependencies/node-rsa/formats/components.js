@@ -1,23 +1,23 @@
-var _ = require('../utils')._;
-var utils = require('../utils');
+const _ = require ('../utils')._;
+const utils = require ('../utils');
 
 module.exports = {
-    privateExport: function (key, options) {
+    'privateExport': function (key, options) {
         return {
-            n: key.n.toBuffer(),
-            e: key.e,
-            d: key.d.toBuffer(),
-            p: key.p.toBuffer(),
-            q: key.q.toBuffer(),
-            dmp1: key.dmp1.toBuffer(),
-            dmq1: key.dmq1.toBuffer(),
-            coeff: key.coeff.toBuffer()
+            'n': key.n.toBuffer (),
+            'e': key.e,
+            'd': key.d.toBuffer (),
+            'p': key.p.toBuffer (),
+            'q': key.q.toBuffer (),
+            'dmp1': key.dmp1.toBuffer (),
+            'dmq1': key.dmq1.toBuffer (),
+            'coeff': key.coeff.toBuffer (),
         };
     },
 
-    privateImport: function (key, data, options) {
+    'privateImport': function (key, data, options) {
         if (data.n && data.e && data.d && data.p && data.q && data.dmp1 && data.dmq1 && data.coeff) {
-            key.setPrivate(
+            key.setPrivate (
                 data.n,
                 data.e,
                 data.d,
@@ -28,25 +28,25 @@ module.exports = {
                 data.coeff
             );
         } else {
-            throw Error("Invalid key data");
+            throw Error ('Invalid key data');
         }
     },
 
-    publicExport: function (key, options) {
+    'publicExport': function (key, options) {
         return {
-            n: key.n.toBuffer(),
-            e: key.e
+            'n': key.n.toBuffer (),
+            'e': key.e,
         };
     },
 
-    publicImport: function (key, data, options) {
+    'publicImport': function (key, data, options) {
         if (data.n && data.e) {
-            key.setPublic(
+            key.setPublic (
                 data.n,
                 data.e
             );
         } else {
-            throw Error("Invalid key data");
+            throw Error ('Invalid key data');
         }
     },
 
@@ -55,17 +55,16 @@ module.exports = {
      * @param key
      * @param data
      */
-    autoImport: function (key, data) {
+    'autoImport': function (key, data) {
         if (data.n && data.e) {
             if (data.d && data.p && data.q && data.dmp1 && data.dmq1 && data.coeff) {
-                module.exports.privateImport(key, data);
+                module.exports.privateImport (key, data);
                 return true;
             } else {
-                module.exports.publicImport(key, data);
+                module.exports.publicImport (key, data);
                 return true;
             }
         }
-
         return false;
-    }
+    },
 };

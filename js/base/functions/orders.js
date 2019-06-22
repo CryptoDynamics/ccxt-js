@@ -6,7 +6,7 @@ const updateCachedOrders = function (openOrders, symbol) {
 const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
 
     for (let i = 0; i < newOrders.length; i++) {
-        let newOrder = newOrders[i];
+        const newOrder = newOrders[i];
     }
 
     // update local cache with open orders
@@ -14,15 +14,15 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
         const id = openOrders[j]['id'];
         this.orders[id] = openOrders[j];
     }
-    let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-    let cachedOrderIds = Object.keys (this.orders);
-    let result = [];
+    const openOrdersIndexedById = this.indexBy (openOrders, 'id');
+    const cachedOrderIds = Object.keys (this.orders);
+    const result = [];
     for (let k = 0; k < cachedOrderIds.length; k++) {
         // match each cached order to an order in the open orders array
         // possible reasons why a cached order may be missing in the open orders array:
         // - order was closed or canceled -> update cache
         // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-        let id = cachedOrderIds[k];
+        const id = cachedOrderIds[k];
         let order = this.orders[id];
         result.push (order);
         if (!(id in openOrdersIndexedById)) {

@@ -131,33 +131,33 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetGetTradePairs ();
-        let result = [];
-        let markets = response['Data'];
+        const response = await this.publicGetGetTradePairs ();
+        const result = [];
+        const markets = response['Data'];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let numericId = market['Id'];
-            let label = market['Label'];
-            let baseId = market['Symbol'];
-            let quoteId = market['BaseSymbol'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let id = baseId + '_' + quoteId;
-            let precision = {
+            const market = markets[i];
+            const numericId = market['Id'];
+            const label = market['Label'];
+            const baseId = market['Symbol'];
+            const quoteId = market['BaseSymbol'];
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const id = baseId + '_' + quoteId;
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
-            let lot = market['MinimumTrade'];
-            let priceLimits = {
+            const lot = market['MinimumTrade'];
+            const priceLimits = {
                 'min': market['MinimumPrice'],
                 'max': market['MaximumPrice'],
             };
-            let amountLimits = {
+            const amountLimits = {
                 'min': lot,
                 'max': market['MaximumTrade'],
             };
-            let limits = {
+            const limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
                 'cost': {
@@ -165,7 +165,7 @@ module.exports = class cryptopia extends Exchange {
                     'max': undefined,
                 },
             };
-            let active = market['Status'] === 'OK';
+            const active = market['Status'] === 'OK';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -189,10 +189,10 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetGetMarketOrdersId (this.extend ({
+        const response = await this.publicGetGetMarketOrdersId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let orderbook = response['Data'];
+        const orderbook = response['Data'];
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
@@ -209,8 +209,8 @@ module.exports = class cryptopia extends Exchange {
                 15552000,
             ];
             const numDataRanges = dataRanges.length;
-            let now = this.seconds ();
-            let sinceSeconds = parseInt (since / 1000);
+            const now = this.seconds ();
+            const sinceSeconds = parseInt (since / 1000);
             for (let i = 1; i < numDataRanges; i++) {
                 if ((now - sinceSeconds) > dataRanges[i]) {
                     dataRange = i;
@@ -218,15 +218,15 @@ module.exports = class cryptopia extends Exchange {
             }
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'tradePairId': market['numericId'],
             'dataRange': dataRange,
             'dataGroup': this.timeframes[timeframe],
         };
-        let response = await this.webGetExchangeGetTradePairChart (this.extend (request, params));
-        let candles = response['Candle'];
-        let volumes = response['Volume'];
+        const response = await this.webGetExchangeGetTradePairChart (this.extend (request, params));
+        const candles = response['Candle'];
+        const volumes = response['Volume'];
         for (let i = 0; i < candles.length; i++) {
             candles[i].push (volumes[i]['basev']);
         }
@@ -246,22 +246,22 @@ module.exports = class cryptopia extends Exchange {
         if (symbols === undefined) {
             throw new ExchangeError (this.id + ' fetchOrderBooks requires the symbols argument as of May 2018 (up to 5 symbols at max)');
         }
-        let numSymbols = symbols.length;
+        const numSymbols = symbols.length;
         if (numSymbols > 5) {
             throw new ExchangeError (this.id + ' fetchOrderBooks accepts 5 symbols at max');
         }
-        let ids = this.joinMarketIds (this.marketIds (symbols));
-        let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
+        const ids = this.joinMarketIds (this.marketIds (symbols));
+        const response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
             'ids': ids,
         }, params));
-        let orderbooks = response['Data'];
-        let result = {};
+        const orderbooks = response['Data'];
+        const result = {};
         for (let i = 0; i < orderbooks.length; i++) {
-            let orderbook = orderbooks[i];
-            let id = this.safeString (orderbook, 'Market');
+            const orderbook = orderbooks[i];
+            const id = this.safeString (orderbook, 'Market');
             let symbol = id;
             if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
+                const market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
             result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
@@ -270,20 +270,24 @@ module.exports = class cryptopia extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let open = this.safeFloat (ticker, 'Open');
-        let last = this.safeFloat (ticker, 'LastPrice');
-        let change = last - open;
-        let baseVolume = this.safeFloat (ticker, 'Volume');
-        let quoteVolume = this.safeFloat (ticker, 'BaseVolume');
+        }
+        const open = this.safeFloat (ticker, 'Open');
+        const last = this.safeFloat (ticker, 'LastPrice');
+        const change = last - open;
+        const baseVolume = this.safeFloat (ticker, 'Volume');
+        const quoteVolume = this.safeFloat (ticker, 'BaseVolume');
         let vwap = undefined;
-        if (quoteVolume !== undefined)
-            if (baseVolume !== undefined)
-                if (baseVolume > 0)
+        if (quoteVolume !== undefined) {
+            if (baseVolume !== undefined) {
+                if (baseVolume > 0) {
                     vwap = quoteVolume / baseVolume;
+                }
+            }
+        }
         return {
             'symbol': symbol,
             'info': ticker,
@@ -310,29 +314,30 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetMarketId (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetGetMarketId (this.extend ({
             'id': market['id'],
         }, params));
-        let ticker = response['Data'];
+        const ticker = response['Data'];
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetGetMarkets (params);
-        let result = {};
-        let tickers = response['Data'];
+        const response = await this.publicGetGetMarkets (params);
+        const result = {};
+        const tickers = response['Data'];
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            let id = ticker['Label'].replace ('/', '_');
-            let recognized = (id in this.markets_by_id);
+            const ticker = tickers[i];
+            const id = ticker['Label'].replace ('/', '_');
+            const recognized = (id in this.markets_by_id);
             if (!recognized) {
-                if (this.options['fetchTickersErrors'])
+                if (this.options['fetchTickersErrors']) {
                     throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id.toString ());
+                }
             } else {
-                let market = this.markets_by_id[id];
-                let symbol = market['symbol'];
+                const market = this.markets_by_id[id];
+                const symbol = market['symbol'];
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
@@ -347,10 +352,11 @@ module.exports = class cryptopia extends Exchange {
             timestamp = this.parse8601 (trade['TimeStamp']);
         }
         let price = this.safeFloat (trade, 'Price');
-        if (!price)
+        if (!price) {
             price = this.safeFloat (trade, 'Rate');
-        let cost = this.safeFloat (trade, 'Total');
-        let id = this.safeString (trade, 'TradeId');
+        }
+        const cost = this.safeFloat (trade, 'Total');
+        const id = this.safeString (trade, 'TradeId');
         if (market === undefined) {
             let marketId = this.safeString (trade, 'Market');
             marketId = marketId.replace ('/', '_');
@@ -387,19 +393,19 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         let hours = 24; // the default
         if (since !== undefined) {
-            let elapsed = this.milliseconds () - since;
-            let hour = 1000 * 60 * 60;
+            const elapsed = this.milliseconds () - since;
+            const hour = 1000 * 60 * 60;
             hours = parseInt (Math.ceil (elapsed / hour));
         }
-        let request = {
+        const request = {
             'id': market['id'],
             'hours': hours,
         };
-        let response = await this.publicGetGetMarketHistoryIdHours (this.extend (request, params));
-        let trades = response['Data'];
+        const response = await this.publicGetGetMarketHistoryIdHours (this.extend (request, params));
+        const trades = response['Data'];
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -434,9 +440,9 @@ module.exports = class cryptopia extends Exchange {
         //         Address: null
         //     }
         //
-        let timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'Currency');
+        const currencyId = this.safeString (transaction, 'Currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency === undefined) {
             code = this.commonCurrencyCode (currencyId);
@@ -445,7 +451,7 @@ module.exports = class cryptopia extends Exchange {
             code = currency['code'];
         }
         let status = this.safeString (transaction, 'Status');
-        let txid = this.safeString (transaction, 'TxId');
+        const txid = this.safeString (transaction, 'TxId');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
@@ -453,7 +459,7 @@ module.exports = class cryptopia extends Exchange {
         const type = this.parseTransactionType (this.safeString (transaction, 'Type'));
         const amount = this.safeFloat (transaction, 'Amount');
         const address = this.safeString (transaction, 'Address');
-        let feeCost = this.safeFloat (transaction, 'Fee');
+        const feeCost = this.safeFloat (transaction, 'Fee');
         return {
             'info': transaction,
             'id': id,
@@ -493,10 +499,10 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'type': (type === 'deposit') ? 'Deposit' : 'Withdraw',
         };
-        let response = await this.privatePostGetTransactions (this.extend (request, params));
+        const response = await this.privatePostGetTransactions (this.extend (request, params));
         return this.parseTransactions (response['Data'], code, since, limit);
     }
 
@@ -510,7 +516,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -519,26 +525,27 @@ module.exports = class cryptopia extends Exchange {
         if (limit !== undefined) {
             request['Count'] = limit; // default 100
         }
-        let response = await this.privatePostGetTradeHistory (this.extend (request, params));
+        const response = await this.privatePostGetTradeHistory (this.extend (request, params));
         return this.parseTrades (response['Data'], market, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetGetCurrencies (params);
-        let currencies = response['Data'];
-        let result = {};
+        const response = await this.publicGetGetCurrencies (params);
+        const currencies = response['Data'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Symbol'];
+            const currency = currencies[i];
+            const id = currency['Symbol'];
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let code = this.commonCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const code = this.commonCurrencyCode (id);
             let active = (currency['ListingStatus'] === 'Active');
-            let status = currency['Status'].toLowerCase ();
-            if (status !== 'ok')
+            const status = currency['Status'].toLowerCase ();
+            if (status !== 'ok') {
                 active = false;
+            }
             result[code] = {
                 'id': id,
                 'code': code,
@@ -573,14 +580,14 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetBalance (params);
-        let balances = response['Data'];
-        let result = { 'info': response };
+        const response = await this.privatePostGetBalance (params);
+        const balances = response['Data'];
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let code = balance['Symbol'];
-            let currency = this.commonCurrencyCode (code);
-            let account = {
+            const balance = balances[i];
+            const code = balance['Symbol'];
+            const currency = this.commonCurrencyCode (code);
+            const account = {
                 'free': balance['Available'],
                 'used': 0.0,
                 'total': balance['Total'],
@@ -592,13 +599,14 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         // price = parseFloat (price);
         // amount = parseFloat (amount);
-        let request = {
+        const request = {
             'Market': market['id'],
             'Type': this.capitalize (side),
             // 'Rate': this.priceToPrecision (symbol, price),
@@ -606,9 +614,10 @@ module.exports = class cryptopia extends Exchange {
             'Rate': price,
             'Amount': amount,
         };
-        let response = await this.privatePostSubmitTrade (this.extend (request, params));
-        if (!response)
+        const response = await this.privatePostSubmitTrade (this.extend (request, params));
+        if (!response) {
             throw new ExchangeError (this.id + ' createOrder returned unknown error: ' + this.json (response));
+        }
         let id = undefined;
         let filled = 0.0;
         let status = 'open';
@@ -622,7 +631,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let order = {
+        const order = {
             'id': id,
             'timestamp': undefined,
             'datetime': undefined,
@@ -639,8 +648,9 @@ module.exports = class cryptopia extends Exchange {
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
-        if (id)
+        if (id) {
             this.orders[id] = order;
+        }
         return this.extend ({ 'info': response }, order);
     }
 
@@ -654,14 +664,16 @@ module.exports = class cryptopia extends Exchange {
             }, params));
             // We do not know if it is indeed canceled, but cryptopia lacks any
             // reasonable method to get information on executed or canceled order.
-            if (id in this.orders)
+            if (id in this.orders) {
                 this.orders[id]['status'] = 'canceled';
+            }
         } catch (e) {
             if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'Error');
+                const message = this.safeString (this.last_json_response, 'Error');
                 if (message) {
-                    if (message.indexOf ('does not exist') >= 0)
+                    if (message.indexOf ('does not exist') >= 0) {
                         throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    }
                 }
             }
             throw e;
@@ -674,7 +686,7 @@ module.exports = class cryptopia extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         } else if ('Market' in order) {
-            let id = order['Market'];
+            const id = order['Market'];
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
@@ -685,9 +697,9 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.parse8601 (this.safeString (order, 'TimeStamp'));
-        let amount = this.safeFloat (order, 'Amount');
-        let remaining = this.safeFloat (order, 'Remaining');
+        const timestamp = this.parse8601 (this.safeString (order, 'TimeStamp'));
+        const amount = this.safeFloat (order, 'Amount');
+        const remaining = this.safeFloat (order, 'Remaining');
         let filled = undefined;
         if (amount !== undefined && remaining !== undefined) {
             filled = amount - remaining;
@@ -723,7 +735,7 @@ module.exports = class cryptopia extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let request = {
+        const request = {
             // 'Market': market['id'],
             // 'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
@@ -732,24 +744,24 @@ module.exports = class cryptopia extends Exchange {
             market = this.market (symbol);
             request['Market'] = market['id'];
         }
-        let response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        let orders = [];
+        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
+        const orders = [];
         for (let i = 0; i < response['Data'].length; i++) {
             orders.push (this.extend (response['Data'][i], { 'status': 'open' }));
         }
-        let openOrders = this.parseOrders (orders, market);
+        const openOrders = this.parseOrders (orders, market);
         for (let j = 0; j < openOrders.length; j++) {
             this.orders[openOrders[j]['id']] = openOrders[j];
         }
-        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
+        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        const cachedOrderIds = Object.keys (this.orders);
+        const result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
-            let id = cachedOrderIds[k];
+            const id = cachedOrderIds[k];
             if (id in openOrdersIndexedById) {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
-                let order = this.orders[id];
+                const order = this.orders[id];
                 if (order['status'] === 'open') {
                     if ((symbol === undefined) || (order['symbol'] === symbol)) {
                         this.orders[id] = this.extend (order, {
@@ -761,47 +773,51 @@ module.exports = class cryptopia extends Exchange {
                     }
                 }
             }
-            let order = this.orders[id];
-            if ((symbol === undefined) || (order['symbol'] === symbol))
+            const order = this.orders[id];
+            if ((symbol === undefined) || (order['symbol'] === symbol)) {
                 result.push (order);
+            }
         }
         return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         id = id.toString ();
-        let orders = await this.fetchOrders (symbol, undefined, undefined, params);
+        const orders = await this.fetchOrders (symbol, undefined, undefined, params);
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] === id)
+            if (orders[i]['id'] === id) {
                 return orders[i];
+            }
         }
         throw new OrderNotCached (this.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        const result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'open')
+            if (orders[i]['status'] === 'open') {
                 result.push (orders[i]);
+            }
         }
         return result;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        const result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'closed')
+            if (orders[i]['status'] === 'closed') {
                 result.push (orders[i]);
+            }
         }
         return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostGetDepositAddress (this.extend ({
+        const currency = this.currency (code);
+        const response = await this.privatePostGetDepositAddress (this.extend ({
             'Currency': currency['id'],
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
@@ -826,16 +842,17 @@ module.exports = class cryptopia extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         this.checkAddress (address);
-        let request = {
+        const request = {
             'Currency': currency['id'],
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
         };
-        if (tag)
+        if (tag) {
             request['PaymentId'] = tag;
-        let response = await this.privatePostSubmitWithdraw (this.extend (request, params));
+        }
+        const response = await this.privatePostSubmitWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['Data'],
@@ -844,26 +861,27 @@ module.exports = class cryptopia extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             body = this.json (query, { 'convertArraysToObjects': true });
             let hash = this.hash (this.encode (body), 'md5', 'base64');
-            let secret = this.base64ToBinary (this.secret);
-            let uri = this.encodeURIComponent (url);
-            let lowercase = uri.toLowerCase ();
+            const secret = this.base64ToBinary (this.secret);
+            const uri = this.encodeURIComponent (url);
+            const lowercase = uri.toLowerCase ();
             hash = this.binaryToString (hash);
-            let payload = this.apiKey + method + lowercase + nonce + hash;
-            let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
-            let auth = 'amx ' + this.apiKey + ':' + this.binaryToString (signature) + ':' + nonce;
+            const payload = this.apiKey + method + lowercase + nonce + hash;
+            const signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
+            const auth = 'amx ' + this.apiKey + ':' + this.binaryToString (signature) + ':' + nonce;
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': auth,
             };
         } else {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -880,8 +898,8 @@ module.exports = class cryptopia extends Exchange {
             const success = this.safeValue (response, 'Success');
             if (success !== undefined) {
                 if (!success) {
-                    let error = this.safeString (response, 'Error');
-                    let feedback = this.id + ' ' + body;
+                    const error = this.safeString (response, 'Error');
+                    const feedback = this.id + ' ' + body;
                     if (typeof error === 'string') {
                         if (error.indexOf ('Invalid trade amount') >= 0) {
                             throw new InvalidOrder (feedback);

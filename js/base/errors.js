@@ -8,7 +8,7 @@ module.exports = subclass (
 
     Error,
 
-/*  Derived class hierarchy     */
+    /*  Derived class hierarchy     */
 
     {
         'BaseError':{
@@ -65,7 +65,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                     super (message)
 
-                /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
+                    /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
                     See my blog post for the explanation of this hack:
 
                     https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */

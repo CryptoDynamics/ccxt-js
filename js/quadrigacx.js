@@ -87,13 +87,13 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privatePostBalance ();
-        let result = { 'info': balances };
-        let currencyIds = Object.keys (this.currencies_by_id);
+        const balances = await this.privatePostBalance ();
+        const result = { 'info': balances };
+        const currencyIds = Object.keys (this.currencies_by_id);
         for (let i = 0; i < currencyIds.length; i++) {
-            let currencyId = currencyIds[i];
-            let currency = this.currencies_by_id[currencyId];
-            let code = currency['code'];
+            const currencyId = currencyIds[i];
+            const currency = this.currencies_by_id[currencyId];
+            const code = currency['code'];
             result[code] = {
                 'free': this.safeFloat (balances, currencyId + '_available'),
                 'used': this.safeFloat (balances, currencyId + '_reserved'),
@@ -105,7 +105,7 @@ module.exports = class quadrigacx extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        let request = {};
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['book'] = market['id'];
@@ -113,14 +113,14 @@ module.exports = class quadrigacx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privatePostUserTransactions (this.extend (request, params));
-        let trades = this.filterBy (response, 'type', 2);
+        const response = await this.privatePostUserTransactions (this.extend (request, params));
+        const trades = this.filterBy (response, 'type', 2);
         return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        let request = {};
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['book'] = market['id'];
@@ -128,8 +128,8 @@ module.exports = class quadrigacx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privatePostUserTransactions (this.extend (request, params));
-        let user_transactions = this.filterByArray (response, 'type', [0, 1], false);
+        const response = await this.privatePostUserTransactions (this.extend (request, params));
+        const user_transactions = this.filterByArray (response, 'type', [0, 1], false);
         // return user_transactions;
         return this.parseTransactions (user_transactions, market, since, limit);
     }
@@ -154,8 +154,8 @@ module.exports = class quadrigacx extends Exchange {
         //
         let code = undefined;
         let amount = undefined;
-        let omitted = this.omit (transaction, [ 'datetime', 'type', 'method', 'fee' ]);
-        let keys = Object.keys (omitted);
+        const omitted = this.omit (transaction, [ 'datetime', 'type', 'method', 'fee' ]);
+        const keys = Object.keys (omitted);
         for (let i = 0; i < keys.length; i++) {
             if (keys[i] in this.currencies_by_id) {
                 code = keys[i];
@@ -164,8 +164,8 @@ module.exports = class quadrigacx extends Exchange {
         if (code !== undefined) {
             amount = this.safeString (transaction, code);
         }
-        let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        let status = 'ok';
+        const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
+        const status = 'ok';
         const fee = this.safeFloat (transaction, 'fee');
         let type = this.safeInteger (transaction, 'type');
         type = (type === 1) ? 'withdrawal' : 'deposit';
@@ -190,10 +190,10 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let request = {
+        const request = {
             'id': id,
         };
-        let response = await this.privatePostLookupOrder (this.extend (request, params));
+        const response = await this.privatePostLookupOrder (this.extend (request, params));
         return this.parseOrders (response);
     }
 
@@ -208,18 +208,18 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = this.safeString (order, 'id');
-        let price = this.safeFloat (order, 'price');
+        const id = this.safeString (order, 'id');
+        const price = this.safeFloat (order, 'price');
         let amount = undefined;
         let filled = undefined;
         let remaining = this.safeFloat (order, 'amount');
         let cost = undefined;
         let symbol = undefined;
-        let marketId = this.safeString (order, 'book');
+        const marketId = this.safeString (order, 'book');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         } else {
-            let [ baseId, quoteId ] = marketId.split ('_');
+            const [ baseId, quoteId ] = marketId.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
@@ -232,10 +232,10 @@ module.exports = class quadrigacx extends Exchange {
         } else {
             side = 'sell';
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let timestamp = this.parse8601 (this.safeString (order, 'created'));
-        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated'));
-        let type = (price === 0.0) ? 'market' : 'limit';
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timestamp = this.parse8601 (this.safeString (order, 'created'));
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated'));
+        const type = (price === 0.0) ? 'market' : 'limit';
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -249,7 +249,7 @@ module.exports = class quadrigacx extends Exchange {
                 cost = price * filled;
             }
         }
-        let result = {
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -271,28 +271,28 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetOrderBook (this.extend ({
+        const orderbook = await this.publicGetOrderBook (this.extend ({
             'book': this.marketId (symbol),
         }, params));
-        let timestamp = parseInt (orderbook['timestamp']) * 1000;
+        const timestamp = parseInt (orderbook['timestamp']) * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        let response = await this.publicGetTicker (this.extend ({
+        const response = await this.publicGetTicker (this.extend ({
             'book': 'all',
         }, params));
-        let ids = Object.keys (response);
-        let result = {};
+        const ids = Object.keys (response);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let [ baseId, quoteId ] = id.split ('_');
+                const [ baseId, quoteId ] = id.split ('_');
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
                 base = this.commonCurrencyCode (base);
@@ -309,8 +309,8 @@ module.exports = class quadrigacx extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetTicker (this.extend ({
             'book': market['id'],
         }, params));
         return this.parseTicker (response, market);
@@ -318,15 +318,17 @@ module.exports = class quadrigacx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = parseInt (ticker['timestamp']) * 1000;
-        let vwap = this.safeFloat (ticker, 'vwap');
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        }
+        const timestamp = parseInt (ticker['timestamp']) * 1000;
+        const vwap = this.safeFloat (ticker, 'vwap');
+        const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined)
+        if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
-        let last = this.safeFloat (ticker, 'last');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -371,7 +373,7 @@ module.exports = class quadrigacx extends Exchange {
         //         "rate": 54.321, // rate per btc (only for trades)
         //     }
         //
-        let id = this.safeString2 (trade, 'tid', 'id');
+        const id = this.safeString2 (trade, 'tid', 'id');
         let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'date');
@@ -380,21 +382,21 @@ module.exports = class quadrigacx extends Exchange {
             }
         }
         let symbol = undefined;
-        let omitted = this.omit (trade, [ 'datetime', 'id', 'type', 'method', 'order_id', 'fee', 'rate' ]);
-        let keys = Object.keys (omitted);
-        let rate = this.safeFloat (trade, 'rate');
+        const omitted = this.omit (trade, [ 'datetime', 'id', 'type', 'method', 'order_id', 'fee', 'rate' ]);
+        const keys = Object.keys (omitted);
+        const rate = this.safeFloat (trade, 'rate');
         for (let i = 0; i < keys.length; i++) {
-            let marketId = keys[i];
-            let floatValue = this.safeFloat (trade, marketId);
+            const marketId = keys[i];
+            const floatValue = this.safeFloat (trade, marketId);
             if (floatValue === rate) {
                 if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
                 } else {
-                    let currencyIds = marketId.split ('_');
-                    let numCurrencyIds = currencyIds.length;
+                    const currencyIds = marketId.split ('_');
+                    const numCurrencyIds = currencyIds.length;
                     if (numCurrencyIds === 2) {
-                        let baseId = currencyIds[0];
-                        let quoteId = currencyIds[1];
+                        const baseId = currencyIds[0];
+                        const quoteId = currencyIds[1];
                         let base = baseId.toUpperCase ();
                         let quote = quoteId.toUpperCase ();
                         base = this.commonCurrencyCode (base);
@@ -404,15 +406,15 @@ module.exports = class quadrigacx extends Exchange {
                 }
             }
         }
-        let orderId = this.safeString (trade, 'order_id');
+        const orderId = this.safeString (trade, 'order_id');
         let side = this.safeString (trade, 'side');
-        let price = this.safeFloat (trade, 'price', rate);
+        const price = this.safeFloat (trade, 'price', rate);
         let amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            let baseId = market['baseId'];
-            let quoteId = market['quoteId'];
+            const baseId = market['baseId'];
+            const quoteId = market['quoteId'];
             if (amount === undefined) {
                 amount = this.safeFloat (trade, baseId);
                 if (amount !== undefined) {
@@ -424,7 +426,7 @@ module.exports = class quadrigacx extends Exchange {
                 cost = Math.abs (cost);
             }
             if (side === undefined) {
-                let baseValue = this.safeFloat (trade, market['baseId']);
+                const baseValue = this.safeFloat (trade, market['baseId']);
                 if ((baseValue !== undefined) && (baseValue > 0)) {
                     side = 'buy';
                 } else {
@@ -440,7 +442,7 @@ module.exports = class quadrigacx extends Exchange {
             }
         }
         let fee = undefined;
-        let feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
@@ -469,22 +471,23 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTransactions (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetTransactions (this.extend ({
             'book': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePost' + this.capitalize (side);
-        let order = {
+        const method = 'privatePost' + this.capitalize (side);
+        const order = {
             'amount': amount,
             'book': this.marketId (symbol),
         };
-        if (type === 'limit')
+        if (type === 'limit') {
             order['price'] = price;
-        let response = await this[method] (this.extend (order, params));
+        }
+        const response = await this[method] (this.extend (order, params));
         return {
             'info': response,
             'id': response['id'].toString (),
@@ -498,8 +501,8 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        let method = 'privatePost' + this.getCurrencyName (code) + 'DepositAddress';
-        let response = await this[method] (params);
+        const method = 'privatePost' + this.getCurrencyName (code) + 'DepositAddress';
+        const response = await this[method] (params);
         // [E|e]rror
         if (response.indexOf ('rror') >= 0) {
             throw new ExchangeError (this.id + ' ' + response);
@@ -527,12 +530,12 @@ module.exports = class quadrigacx extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'amount': amount,
             'address': address,
         };
-        let method = 'privatePost' + this.getCurrencyName (code) + 'Withdrawal';
-        let response = await this[method] (this.extend (request, params));
+        const method = 'privatePost' + this.getCurrencyName (code) + 'Withdrawal';
+        const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -545,10 +548,10 @@ module.exports = class quadrigacx extends Exchange {
             url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
-            let signature = this.hmac (this.encode (request), this.encode (this.secret));
-            let query = this.extend ({
+            const nonce = this.nonce ();
+            const request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
+            const signature = this.hmac (this.encode (request), this.encode (this.secret));
+            const query = this.extend ({
                 'key': this.apiKey,
                 'nonce': nonce,
                 'signature': signature,
@@ -562,12 +565,14 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     handleErrors (statusCode, statusText, url, method, headers, body, response) {
-        if (typeof body !== 'string')
-            return; // fallback to default error handler
-        if (body.length < 2)
+        if (typeof body !== 'string') {
             return;
+        } // fallback to default error handler
+        if (body.length < 2) {
+            return;
+        }
         if ((body[0] === '{') || (body[0] === '[')) {
-            let error = this.safeValue (response, 'error');
+            const error = this.safeValue (response, 'error');
             if (error !== undefined) {
                 //
                 // {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}

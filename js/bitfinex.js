@@ -576,8 +576,8 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchLoanBalance (params = {}) {
         const response = await this.privatePostBalances (this.extend ());
-        let balances = {};
-        response.forEach (function (wallet) {
+        const balances = {};
+        response.forEach ((wallet) => {
             if (wallet['type'] === 'deposit' && parseFloat (wallet['available']) !== 0) {
                 balances[wallet['currency'].toUpperCase ()] = parseFloat (wallet['available']);
             }
@@ -586,14 +586,12 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchLoanBook (symbol, count = 1) {
-        const response = await this.publicGetLendbookCurrency (this.extend ({
-            'currency': symbol,
+        const response = await this.publicGetLendbookCurrency (this.extend ({ 'currency': symbol,
             'limit_bids': 0,
-            'limit_asks': count}));
-        let offers = [];
-        response.asks.forEach(function (offer) {
-            offers.push ({
-                'rate': parseFloat (offer['rate']),
+            'limit_asks': count }));
+        const offers = [];
+        response.asks.forEach ((offer) => {
+            offers.push ({ 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']) });
         });
         return offers;
@@ -601,28 +599,25 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOpenLoans (symbol) {
         const response = await this.privatePostOffers ();
-        let offers = [];
-        response.forEach (function (offer) {
-            if (offer['currency'] === symbol && !offer['is_cancelled']){
-                offers.push ({
-                    'order_id': offer['id'],
+        const offers = [];
+        response.forEach ((offer) => {
+            if (offer['currency'] === symbol && !offer['is_cancelled']) {
+                offers.push ({ 'order_id': offer['id'],
                     'symbol': offer['currency'],
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
                     'duration': parseFloat (offer['period']),
-                    'date': parseInt (offer['timestamp'])});
+                    'date': parseInt (offer['timestamp']) });
             }
         });
         return offers;
     }
 
-    async fetchActiveLoans() {
+    async fetchActiveLoans () {
         const response = await this.privatePostCredits ();
-
-        let offers = [];
-        response.forEach (function (offer) {
-            offers.push ({
-                'order_id': offer['id'],
+        const offers = [];
+        response.forEach ((offer) => {
+            offers.push ({ 'order_id': offer['id'],
                 'symbol': offer['currency'],
                 'rate': parseFloat (offer['rate']) / 365,
                 'amount': parseFloat (offer['amount']),
@@ -634,14 +629,13 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchLoansHistory (start, end) {
         const response = await this.privatePostOffersHist ();
-        let offers = [];
-        response.forEach (function (offer) {
-            if (start < parseInt(offer['timestamp']) < end) {
+        const offers = [];
+        response.forEach ((offer) => {
+            if (start < parseInt (offer['timestamp']) < end) {
                 const per = 2;
                 const earn = parseFloat (offer['rate']) / 365 * parseFloat (offer['period']) * parseFloat (offer['executed_amount']) / 100;
                 const fee = earn * per / 100;
-                offers.push ({
-                    'order_id': offer['id'],
+                offers.push ({ 'order_id': offer['id'],
                     'symbol': offer['currency'],
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
@@ -655,8 +649,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
-        const response = await this.privatePostOfferNew (this.extend ({
-            'currency': symbol,
+        const response = await this.privatePostOfferNew (this.extend ({ 'currency': symbol,
             'amount': amount.toString (),
             'period': duration,
             'rate': rate.toString (),

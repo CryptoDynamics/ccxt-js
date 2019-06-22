@@ -295,18 +295,18 @@ module.exports = class poloniex extends Exchange {
 
     async fetchLoanBalance () {
         const response = await this.privatePostReturnAvailableAccountBalances (this.extend ({ 'account': 'lending' }));
-
-        let balances = {};
+        console.log (response);
+        const balances = {};
         if (!('lending' in response)) return balances;
         response['lending'].forEach ((symbol) => {
-            balances[symbol] = parseFloat (response['lending'][symbol])
+            balances[symbol] = parseFloat (response['lending'][symbol]);
         });
         return balances;
     }
 
     async fetchLoanBook (symbol, count = 1) {
         const response = await this.publicGetReturnLoanOrders (this.extend ({ 'currency': symbol }));
-        let offers = [];
+        const offers = [];
         if (!('offers' in response)) return offers;
         response['offers'].forEach ((offer) => {
             if (offers.length >= count) {
@@ -314,7 +314,7 @@ module.exports = class poloniex extends Exchange {
             }
             offers.push ({
                 'rate': parseFloat (offer['rate']),
-                'amount': parseFloat (offer['amount'])
+                'amount': parseFloat (offer['amount']),
             });
         });
         return offers;
@@ -322,18 +322,18 @@ module.exports = class poloniex extends Exchange {
 
     async fetchOpenLoans (symbol) {
         const response = await this.privatePostReturnOpenLoanOffers (this.extend ({ 'currency': symbol }));
-        let offers = [];
+        const offers = [];
         if (!(symbol in response)) {
             return offers;
         }
-        response[symbol].forEach (function (offer) {
+        response[symbol].forEach ((offer) => {
             offers.push ({
                 'order_id': offer['id'],
                 'symbol': symbol,
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
-                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ())
+                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ()),
             });
         });
         return offers;
@@ -341,16 +341,15 @@ module.exports = class poloniex extends Exchange {
 
     async fetchActiveLoans () {
         const response = await this.privatePostReturnActiveLoans ();
-
-        let offers = [];
-        response['provided'].forEach (function (offer) {
+        const offers = [];
+        response['provided'].forEach ((offer) => {
             offers.push ({
                 'order_id': offer['id'],
                 'symbol': offer['currency'],
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
-                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ())
+                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ()),
             });
         });
         return offers;
@@ -358,8 +357,8 @@ module.exports = class poloniex extends Exchange {
 
     async fetchLoansHistory (start, end) {
         const response = await this.privatePostReturnLendingHistory (this.extend ({ 'start': start, 'end': end }));
-        let offers = [];
-        response.forEach ( function (offer) {
+        const offers = [];
+        response.forEach ((offer) => {
             const per = 2;
             const earn = parseFloat (offer['earned']);
             const fee = earn * per / 100;
@@ -371,7 +370,7 @@ module.exports = class poloniex extends Exchange {
                 'duration': parseFloat (offer['duration']),
                 'earned': earn - fee,
                 'fee_asc': fee,
-                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ())
+                'date': parseInt ((Date.parse (offer['close']) / 1000).toString ()),
             });
         });
         return offers;
@@ -383,14 +382,14 @@ module.exports = class poloniex extends Exchange {
             'amount': amount,
             'duration': duration,
             'autoRenew': renew,
-            'lendingRate': rate
+            'lendingRate': rate,
         }, params));
         return await this.parseLoanOrder (response);
     }
 
     async cancelLoanOrder (id, params = {}) {
         const response = await this.privatePostCancelLoanOffer (this.extend ({
-            'orderNumber': id
+            'orderNumber': id,
         }, params));
         return response;
     }

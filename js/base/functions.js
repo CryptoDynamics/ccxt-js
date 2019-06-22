@@ -4,14 +4,15 @@
 
 const { unCamelCase } = require ('./functions/string')
 
-const unCamelCasePropertyNames = x => {
+const unCamelCasePropertyNames = (x) => {
     for (const k in x) x[unCamelCase (k)] = x[k] // camel_case_method = camelCaseMethod
     return x
 }
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = unCamelCasePropertyNames (Object.assign ({}
+module.exports = unCamelCasePropertyNames (Object.assign (
+    {}
 
     , require ('./functions/platform')
     , require ('./functions/generic')

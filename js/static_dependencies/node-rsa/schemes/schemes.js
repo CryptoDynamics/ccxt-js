@@ -1,12 +1,12 @@
 module.exports = {
-    pkcs1: require('./pkcs1'),
+    'pkcs1': require ('./pkcs1'),
 
     /**
      * Check if scheme has padding methods
      * @param scheme {string}
      * @returns {Boolean}
      */
-    isEncryption: function (scheme) {
+    'isEncryption': function (scheme) {
         return module.exports[scheme] && module.exports[scheme].isEncryption;
     },
 
@@ -15,7 +15,7 @@ module.exports = {
      * @param scheme {string}
      * @returns {Boolean}
      */
-    isSignature: function (scheme) {
+    'isSignature': function (scheme) {
         return module.exports[scheme] && module.exports[scheme].isSignature;
-    }
+    },
 };

@@ -27,31 +27,29 @@ const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : Na
 module.exports =
 
     { isNumber
-    , isArray
-    , isObject
-    , isString
-    , isStringCoercible
-    , isDictionary
+        , isArray
+        , isObject
+        , isString
+        , isStringCoercible
+        , isDictionary
 
-    , hasProps
-    , prop
+        , hasProps
+        , prop
 
-    , asFloat
-    , asInteger
+        , asFloat
+        , asInteger
 
-    , safeFloat:   (o, k, $default, n =   asFloat (prop (o, k))) => isNumber (n)          ? n          : $default
-    , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
-    , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
-    , safeString:  (o, k, $default, x =            prop (o, k) ) => isStringCoercible (x) ? String (x) : $default
+        , safeFloat:   (o, k, $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n          : $default)
+        , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n          : $default)
+        , safeValue:   (o, k, $default, x =            prop (o, k)) => (hasProps (x)          ? x          : $default)
+        , safeString:  (o, k, $default, x =            prop (o, k)) => (isStringCoercible (x) ? String (x) : $default)
 
-    // not using safeFloats with an array argument as we're trying to save some cycles here
-    // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
+        // not using safeFloats with an array argument as we're trying to save some cycles here
+        // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
 
-    , safeFloat2:   (o, k1, k2, $default, n =   asFloat (prop2 (o, k1, k2))) => isNumber (n)          ? n          : $default
-    , safeInteger2: (o, k1, k2, $default, n = asInteger (prop2 (o, k1, k2))) => isNumber (n)          ? n          : $default
-    , safeValue2:   (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => hasProps (x)          ? x          : $default
-    , safeString2:  (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x) : $default
-
-    }
+        , safeFloat2:   (o, k1, k2, $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? n          : $default)
+        , safeInteger2: (o, k1, k2, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? n          : $default)
+        , safeValue2:   (o, k1, k2, $default, x =            prop2 (o, k1, k2)) => (hasProps (x)          ? x          : $default)
+        , safeString2:  (o, k1, k2, $default, x =            prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x) : $default) }
 
 /*  ------------------------------------------------------------------------ */
