@@ -651,7 +651,7 @@ module.exports = class bitfinex extends Exchange {
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         const response = await this.privatePostOfferNew (this.extend ({ 'currency': symbol,
             'amount': amount.toString (),
-            'period': duration,
+            'period': parseInt (duration),
             'rate': rate.toString (),
             'direction': 'lend',
             'renew': renew }, params));
