@@ -332,7 +332,7 @@ module.exports = class poloniex extends Exchange {
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
-                'date': Math.round ((Date.parse (offer['close']) / 1000)),
+                'date': Date.parse (offer['close']) / 1000
             });
         });
         return offers;
@@ -348,7 +348,7 @@ module.exports = class poloniex extends Exchange {
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
-                'date': Math.round ((Date.parse (offer['close']) / 1000)),
+                'date': Date.parse (offer['close']) / 1000
             });
         });
         return offers;
@@ -369,7 +369,7 @@ module.exports = class poloniex extends Exchange {
                 'duration': parseFloat (offer['duration']),
                 'earned': earn - fee,
                 'fee_asc': fee,
-                'date': Math.round ((Date.parse (offer['close']) / 1000)),
+                'date': Date.parse (offer['close']) / 1000
             });
         });
         return offers;
