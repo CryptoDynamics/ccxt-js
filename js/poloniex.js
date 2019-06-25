@@ -399,6 +399,15 @@ module.exports = class poloniex extends Exchange {
         }
     }
 
+    async transferBalance (symbol, amount, from, to) {
+        let response = await this.privatePostTransferBalance (this.extend ( {
+            'currency': symbol,
+            'amount': amount,
+            'fromAccount': from,
+            'toAccount': to } ));
+        return response;
+    }
+
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const fees = await this.privatePostReturnFeeInfo (params);

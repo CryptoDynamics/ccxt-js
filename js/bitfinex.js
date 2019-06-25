@@ -674,6 +674,30 @@ module.exports = class bitfinex extends Exchange {
         return result;
     }
 
+    async transferBalance (symbol, amount, from, to) {
+        let response = await this.privatePostTransfer (this.extend ( {
+            'currency': symbol,
+            'amount': amount,
+            'walletfrom': this.parseWallet (from),
+            'walletto': this.parseWallet (to) } ));
+        let status = {
+            success: (response.status === 'success') ? 1 : 0,
+            message: response.message
+        };
+        return response;
+    }
+
+    parseWallet (wallet) {
+        switch (wallet) {
+            case 'exchange':
+                return 'exchange';
+            case 'lending':
+                return 'deposit';
+            case 'margin':
+                return 'trading';
+        }
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
