@@ -1255,7 +1255,7 @@ module.exports = class bitfinex extends Exchange {
         }
         if (code >= 400) {
             if (body[0] === '{') {
-                const feedback = this.id + ' ' + this.json (response);
+                const feedback = this.json (response);
                 let message = undefined;
                 if ('message' in response) {
                     message = response['message'];
