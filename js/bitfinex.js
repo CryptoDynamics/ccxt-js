@@ -561,6 +561,27 @@ module.exports = class bitfinex extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchWalletBalance () {
+        const response = await this.privatePostBalances ();
+
+        let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}};
+        response.forEach(function (balance) {
+            if (balance.amount === 0) return;
+            switch (balance.type) {
+                case 'exchange':
+                    wallets.exchange[balance.currency.toUpperCase ()] = balance.amount;
+                    break;
+                case 'trading':
+                    wallets.margin[balance.currency.toUpperCase ()] = balance.amount;
+                    break;
+                case 'deposit':
+                    wallets.lending[balance.currency.toUpperCase()] = balance.amount;
+                    break;
+            }
+        });
+        return wallets;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {

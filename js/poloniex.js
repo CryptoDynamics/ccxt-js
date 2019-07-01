@@ -293,6 +293,10 @@ module.exports = class poloniex extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchWalletBalance () {
+        return await this.privatePostReturnAvailableAccountBalances()
+    }
+
     async fetchLoanBalance () {
         const response = await this.privatePostReturnAvailableAccountBalances (this.extend ({ 'account': 'lending' }));
         const balances = {};
