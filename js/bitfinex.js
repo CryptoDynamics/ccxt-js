@@ -566,17 +566,18 @@ module.exports = class bitfinex extends Exchange {
 
         let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}};
         response.forEach(function (balance) {
-            if (balance.amount === 0) return;
-            switch (balance.type) {
-                case 'exchange':
-                    wallets.exchange[balance.currency.toUpperCase ()] = balance.amount;
-                    break;
-                case 'trading':
-                    wallets.margin[balance.currency.toUpperCase ()] = balance.amount;
-                    break;
-                case 'deposit':
-                    wallets.lending[balance.currency.toUpperCase()] = balance.amount;
-                    break;
+            if (parseFloat (balance.amount) !== 0) {
+                switch (balance.type) {
+                    case 'exchange':
+                        wallets.exchange[balance.currency.toUpperCase ()] = balance.amount;
+                        break;
+                    case 'trading':
+                        wallets.margin[balance.currency.toUpperCase ()] = balance.amount;
+                        break;
+                    case 'deposit':
+                        wallets.lending[balance.currency.toUpperCase()] = balance.amount;
+                        break;
+                }
             }
         });
         return wallets;
