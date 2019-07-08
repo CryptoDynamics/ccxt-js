@@ -569,13 +569,22 @@ module.exports = class bitfinex extends Exchange {
             if (parseFloat (balance.amount) !== 0) {
                 switch (balance.type) {
                     case 'exchange':
-                        wallets.exchange[balance.currency.toUpperCase ()] = balance.amount;
+                        wallets.exchange[balance.currency.toUpperCase ()] = {};
+                        wallets.exchange[balance.currency.toUpperCase ()]['available'] = balance.available;
+                        wallets.exchange[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
+                        wallets.exchange[balance.currency.toUpperCase ()]['total'] = balance.amount;
                         break;
                     case 'trading':
-                        wallets.margin[balance.currency.toUpperCase ()] = balance.amount;
+                        wallets.margin[balance.currency.toUpperCase ()] = {};
+                        wallets.margin[balance.currency.toUpperCase ()]['available'] = balance.available;
+                        wallets.margin[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
+                        wallets.margin[balance.currency.toUpperCase ()]['total'] = balance.amount;
                         break;
                     case 'deposit':
-                        wallets.lending[balance.currency.toUpperCase()] = balance.amount;
+                        wallets.lending[balance.currency.toUpperCase ()] = {};
+                        wallets.lending[balance.currency.toUpperCase ()]['available'] = balance.available;
+                        wallets.lending[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
+                        wallets.lending[balance.currency.toUpperCase ()]['total'] = balance.amount;
                         break;
                 }
             }
@@ -773,8 +782,7 @@ module.exports = class bitfinex extends Exchange {
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'mid'),
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            'quoteVolume': undefined
         };
     }
 
@@ -966,6 +974,7 @@ module.exports = class bitfinex extends Exchange {
             'price': this.safeFloat (order, 'price'),
             'average': this.safeFloat (order, 'avg_execution_price'),
             'amount': this.safeFloat (order, 'original_amount'),
+            'total': order['price'] * order['original_amount'],
             'remaining': this.safeFloat (order, 'remaining_amount'),
             'filled': this.safeFloat (order, 'executed_amount'),
             'status': status,

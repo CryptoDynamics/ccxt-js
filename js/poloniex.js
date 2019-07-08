@@ -276,7 +276,7 @@ module.exports = class poloniex extends Exchange {
             'account': 'all',
         };
         const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
-        const result = { 'info': response };
+        const result = {};
         const currencies = Object.keys (response);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
@@ -294,7 +294,8 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchWalletBalance () {
-        return await this.privatePostReturnAvailableAccountBalances()
+        return await this.privatePostReturnCompleteBalances(this.extend ({ 'account': 'lending' }));
+        // return await this.privatePostReturnAvailableAccountBalances()
     }
 
     async fetchLoanBalance () {
@@ -404,7 +405,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async transferBalance (symbol, amount, from, to) {
-        let response = await this.privatePostTransferBalance (this.extend ( {
+        const response = await this.privatePostTransferBalance (this.extend ( {
             'currency': symbol,
             'amount': amount,
             'fromAccount': from,
@@ -890,6 +891,7 @@ module.exports = class poloniex extends Exchange {
             'price': price,
             'cost': cost,
             'amount': amount,
+            'total': order['total'],
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
@@ -1029,8 +1031,9 @@ module.exports = class poloniex extends Exchange {
             'amount': amount,
         }, response), market);
         const id = order['id'];
+
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.extend (order);
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
