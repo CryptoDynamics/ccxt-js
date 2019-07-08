@@ -297,38 +297,19 @@ module.exports = class poloniex extends Exchange {
         // return await this.privatePostReturnCompleteBalances(this.extend ({ 'account': 'lending' }));
         const response = await this.privatePostReturnAvailableAccountBalances();
         let wallets = {'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
-        response['exchange'].forEach ( symbol => {
-            wallets.exchange[symbol] = {};
-            wallets.exchange[symbol]['available'] = response['exchange'][symbol];
-            wallets.exchange[symbol]['on_orders'] = 0;
-            wallets.exchange[symbol]['total'] = response['exchange'][symbol];
-            if (wallets.total[symbol] === undefined) {
-                wallets.total[symbol] = wallets.exchange[symbol]['total'];
-            }else {
-                wallets.total[symbol] += wallets.exchange[symbol]['total'];
-            }
-        });
-        response['lending'].forEach ( symbol => {
-            wallets.lending[symbol] = {};
-            wallets.lending[symbol]['available'] = response['lending'][symbol];
-            wallets.lending[symbol]['on_orders'] = 0;
-            wallets.lending[symbol]['total'] = response['lending'][symbol];
-            if (wallets.total[symbol] === undefined) {
-                wallets.total[symbol] = wallets.lending[symbol]['total'];
-            } else {
-                wallets.total[symbol] += wallets.lending[symbol]['total'];
-            }
-        });
-        response['margin'].forEach ( symbol => {
-            wallets.margin[symbol] = {};
-            wallets.margin[symbol]['available'] = response['margin'][symbol];
-            wallets.margin[symbol]['on_orders'] = 0;
-            wallets.margin[symbol]['total'] = response['margin'][symbol];
-            if (wallets.total[symbol] === undefined) {
-                wallets.total[symbol] = wallets.margin[symbol]['total'];
-            } else {
-                wallets.total[symbol] += wallets.margin[symbol]['total'];
-            }
+        return response;
+        response.forEach( wallet => {
+            response[wallet].forEach ( symbol => {
+                wallets.exchange[symbol] = {};
+                wallets.exchange[symbol]['available'] = response[wallet][symbol];
+                wallets.exchange[symbol]['on_orders'] = 0;
+                wallets.exchange[symbol]['total'] = response[wallet][symbol];
+                if (wallets.total[symbol] === undefined) {
+                    wallets.total[symbol] = wallets.exchange[symbol]['total'];
+                }else {
+                    wallets.total[symbol] += wallets.exchange[symbol]['total'];
+                }
+            });
         });
         return wallets;
     }
