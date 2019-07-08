@@ -300,14 +300,14 @@ module.exports = class poloniex extends Exchange {
         // return response;
         Object.keys (response).forEach ( wallet => {
             Object.keys (response[wallet]).forEach ( symbol => {
-                wallets.exchange[symbol] = {};
-                wallets.exchange[symbol]['available'] = response[wallet][symbol];
-                wallets.exchange[symbol]['on_orders'] = 0;
-                wallets.exchange[symbol]['total'] = response[wallet][symbol];
+                wallets[wallet][symbol] = {};
+                wallets[wallet][symbol]['available'] = response[wallet][symbol];
+                wallets[wallet][symbol]['on_orders'] = 0;
+                wallets[wallet][symbol]['total'] = response[wallet][symbol];
                 if (wallets.total[symbol] === undefined) {
-                    wallets.total[symbol] = wallets.exchange[symbol]['total'];
+                    wallets.total[symbol] = wallets[wallet][symbol]['total'];
                 }else {
-                    wallets.total[symbol] += wallets.exchange[symbol]['total'];
+                    wallets.total[symbol] += wallets[wallet][symbol]['total'];
                 }
             });
         });
