@@ -297,9 +297,9 @@ module.exports = class poloniex extends Exchange {
         // return await this.privatePostReturnCompleteBalances(this.extend ({ 'account': 'lending' }));
         const response = await this.privatePostReturnAvailableAccountBalances();
         let wallets = {'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
-        return response;
-        response.forEach( wallet => {
-            response[wallet].forEach ( symbol => {
+        // return response;
+        response.forEach ( wallet => {
+            Object.keys (response[wallet]).forEach ( symbol => {
                 wallets.exchange[symbol] = {};
                 wallets.exchange[symbol]['available'] = response[wallet][symbol];
                 wallets.exchange[symbol]['on_orders'] = 0;
