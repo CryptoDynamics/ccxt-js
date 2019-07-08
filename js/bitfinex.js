@@ -564,7 +564,7 @@ module.exports = class bitfinex extends Exchange {
     async fetchWalletBalance () {
         const response = await this.privatePostBalances ();
 
-        let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}};
+        let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
         response.forEach(function (balance) {
             if (parseFloat (balance.amount) !== 0) {
                 switch (balance.type) {
@@ -573,18 +573,33 @@ module.exports = class bitfinex extends Exchange {
                         wallets.exchange[balance.currency.toUpperCase ()]['available'] = balance.available;
                         wallets.exchange[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
                         wallets.exchange[balance.currency.toUpperCase ()]['total'] = balance.amount;
+                        if (wallets.total[balance.currency.toUpperCase ()] === undefined) {
+                            wallets.total[balance.currency.toUpperCase ()] = balance.amount;
+                        } else {
+                            wallets.total[balance.currency.toUpperCase ()] += balance.amount;
+                        }
                         break;
                     case 'trading':
                         wallets.margin[balance.currency.toUpperCase ()] = {};
                         wallets.margin[balance.currency.toUpperCase ()]['available'] = balance.available;
                         wallets.margin[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
                         wallets.margin[balance.currency.toUpperCase ()]['total'] = balance.amount;
+                        if (wallets.total[balance.currency.toUpperCase ()] === undefined) {
+                            wallets.total[balance.currency.toUpperCase ()] = balance.amount;
+                        } else {
+                            wallets.total[balance.currency.toUpperCase ()] += balance.amount;
+                        }
                         break;
                     case 'deposit':
                         wallets.lending[balance.currency.toUpperCase ()] = {};
                         wallets.lending[balance.currency.toUpperCase ()]['available'] = balance.available;
                         wallets.lending[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
                         wallets.lending[balance.currency.toUpperCase ()]['total'] = balance.amount;
+                        if (wallets.total[balance.currency.toUpperCase ()] === undefined) {
+                            wallets.total[balance.currency.toUpperCase ()] = balance.amount;
+                        } else {
+                            wallets.total[balance.currency.toUpperCase ()] += balance.amount;
+                        }
                         break;
                 }
             }
