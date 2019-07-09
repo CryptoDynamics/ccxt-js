@@ -938,6 +938,7 @@ module.exports = class poloniex extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'total': response['total']
         }, response), market);
         const id = order['id'];
 
