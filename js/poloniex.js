@@ -604,34 +604,6 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // fetchMyTrades (symbol defined, specific market)
-        //
-        //     {
-        //         globalTradeID: 394698946,
-        //         tradeID: 45210255,
-        //         date: '2018-10-23 17:28:55',
-        //         type: 'sell',
-        //         rate: '0.03114126',
-        //         amount: '0.00018753',
-        //         total: '0.00000583'
-        //     }
-        //
-        // fetchMyTrades (symbol undefined, all markets)
-        //
-        //     {
-        //         globalTradeID: 394131412,
-        //         tradeID: '5455033',
-        //         date: '2018-10-16 18:05:17',
-        //         rate: '0.06935244',
-        //         amount: '1.40308443',
-        //         total: '0.09730732',
-        //         fee: '0.00100000',
-        //         orderNumber: '104768235081',
-        //         type: 'sell',
-        //         category: 'exchange'
-        //     }
-        //
         const id = this.safeString (trade, 'globalTradeID');
         const orderId = this.safeString (trade, 'orderNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
@@ -726,58 +698,6 @@ module.exports = class poloniex extends Exchange {
             request['limit'] = parseInt (limit);
         }
         const response = await this.privatePostReturnTradeHistory (this.extend (request, params));
-        //
-        // specific market (symbol defined)
-        //
-        //     [
-        //         {
-        //             globalTradeID: 394700861,
-        //             tradeID: 45210354,
-        //             date: '2018-10-23 18:01:58',
-        //             type: 'buy',
-        //             rate: '0.03117266',
-        //             amount: '0.00000652',
-        //             total: '0.00000020'
-        //         },
-        //         {
-        //             globalTradeID: 394698946,
-        //             tradeID: 45210255,
-        //             date: '2018-10-23 17:28:55',
-        //             type: 'sell',
-        //             rate: '0.03114126',
-        //             amount: '0.00018753',
-        //             total: '0.00000583'
-        //         }
-        //     ]
-        //
-        // all markets (symbol undefined)
-        //
-        //     {
-        //         BTC_BCH: [{
-        //             globalTradeID: 394131412,
-        //             tradeID: '5455033',
-        //             date: '2018-10-16 18:05:17',
-        //             rate: '0.06935244',
-        //             amount: '1.40308443',
-        //             total: '0.09730732',
-        //             fee: '0.00100000',
-        //             orderNumber: '104768235081',
-        //             type: 'sell',
-        //             category: 'exchange'
-        //         }, {
-        //             globalTradeID: 394126818,
-        //             tradeID: '5455007',
-        //             date: '2018-10-16 16:55:34',
-        //             rate: '0.06935244',
-        //             amount: '0.00155709',
-        //             total: '0.00010798',
-        //             fee: '0.00200000',
-        //             orderNumber: '104768179137',
-        //             type: 'sell',
-        //             category: 'exchange'
-        //         }],
-        //     }
-        //
         let result = [];
         if (market !== undefined) {
             result = this.parseTrades (response, market);
@@ -820,33 +740,6 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //
-        // fetchOpenOrder
-        //
-        //     {
-        //         status: 'Open',
-        //         rate: '0.40000000',
-        //         amount: '1.00000000',
-        //         currencyPair: 'BTC_ETH',
-        //         date: '2018-10-17 17:04:50',
-        //         total: '0.40000000',
-        //         type: 'buy',
-        //         startingAmount: '1.00000',
-        //     }
-        //
-        // fetchOpenOrders
-        //
-        //     {
-        //         orderNumber: '514514894224',
-        //         type: 'buy',
-        //         rate: '0.00001000',
-        //         startingAmount: '100.00000000',
-        //         amount: '100.00000000',
-        //         total: '0.00100000',
-        //         date: '2018-10-23 17:38:53',
-        //         margin: 0,
-        //     }
-        //
         let timestamp = this.safeInteger (order, 'timestamp');
         if (!timestamp) {
             timestamp = this.parse8601 (order['date']);
@@ -864,6 +757,7 @@ module.exports = class poloniex extends Exchange {
         const price = this.safeFloat2 (order, 'price', 'rate');
         const remaining = this.safeFloat (order, 'amount');
         const amount = this.safeFloat (order, 'startingAmount', remaining);
+        const total = this.safeFloat (order, 'total');
         let filled = undefined;
         let cost = 0;
         if (amount !== undefined) {
@@ -895,7 +789,6 @@ module.exports = class poloniex extends Exchange {
         }
         const id = this.safeString (order, 'orderNumber');
         return {
-            'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -907,7 +800,7 @@ module.exports = class poloniex extends Exchange {
             'price': price,
             'cost': cost,
             'amount': amount,
-            'total': order['total'],
+            'total': total,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,

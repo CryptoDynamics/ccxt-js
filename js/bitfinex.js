@@ -978,7 +978,6 @@ module.exports = class bitfinex extends Exchange {
         }
         const id = this.safeString (order, 'id');
         return {
-            'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
