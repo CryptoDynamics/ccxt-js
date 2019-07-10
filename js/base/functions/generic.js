@@ -18,7 +18,7 @@ const keys = Object.keys
 
     , clone = x => (isArray (x)
         ? Array.from (x) // clones arrays
-        : extend (x))     // clones objects
+        : extend (x));    // clones objects
 
 /*  ------------------------------------------------------------------------ */
 
@@ -55,7 +55,7 @@ module.exports =
         , keysort (x, out = {}) {
 
             for (const k of keys (x).sort ())
-                out[k] = x[k]
+                out[k] = x[k];
 
             return out
         }
@@ -83,7 +83,7 @@ module.exports =
 
             for (const v of values (x))
                 if (k in v)
-                    out[v[k]] = v
+                    out[v[k]] = v;
 
             return out
         }
@@ -115,8 +115,8 @@ module.exports =
 
             for (const v of values (x)) {
                 if (k in v) {
-                    const p = v[k]
-                    out[p] = out[p] || []
+                    const p = v[k];
+                    out[p] = out[p] || [];
                     out[p].push (v)
                 }
             }
@@ -145,19 +145,15 @@ module.exports =
 
             for (const v of values (x))
                 if (v[k] === value)
-                    out.push (v)
+                    out.push (v);
 
             return out
         }
 
         /*  .............................................   */
 
-        , sortBy: (
-            array, // NB: MUTATES ARRAY!
-            key,
-            descending = false,
-            direction  = descending ? -1 : 1
-        ) => array.sort ((a, b) =>
+        , sortBy: (array, key, descending = false, direction  = descending ? -1 : 1) =>
+            array.sort ((a, b) =>
             ((a[key] < b[key]) ? -direction :
                 ((a[key] > b[key]) ?  direction : 0)))
 
@@ -166,7 +162,7 @@ module.exports =
         , flatten: function flatten (x, out = []) {
 
             for (const v of x) {
-                if (isArray (v)) flatten (v, out)
+                if (isArray (v)) flatten (v, out);
                 else out.push (v)
             }
 
@@ -201,7 +197,7 @@ module.exports =
 
         , sum (...xs) {
 
-            const ns = xs.filter (isNumber) // leave only numbers
+            const ns = xs.filter (isNumber); // leave only numbers
 
             return (ns.length > 0)
                 ? ns.reduce ((a, b) => a + b, 0)

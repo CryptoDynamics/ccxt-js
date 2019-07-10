@@ -233,12 +233,12 @@ module.exports = class poloniex extends Exchange {
         } else {
             request['end'] = this.sum (this.seconds (), 1);
         }
-        const response = await this.publicGetReturnChartData (this.extend (request, params));
+        const response = await this.publicGetReturnChartData(this.extend(request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetReturnTicker ();
+        const markets = await this.publicGetReturnTicker();
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -408,10 +408,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async cancelLoanOrder (id, params = {}) {
-        const response = await this.privatePostCancelLoanOffer (this.extend ({
-            'orderNumber': id,
-        }, params));
-        return response;
+        return await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': id}, params));
     }
 
     async parseLoanOrder (data) {
@@ -460,11 +457,7 @@ module.exports = class poloniex extends Exchange {
         const request = {
             'currencyPair': 'all',
         };
-        //
-        //     if (limit !== undefined) {
-        //         request['depth'] = limit; // 100
-        //     }
-        //
+
         const response = await this.publicGetReturnOrderBook (this.extend (request, params));
         const marketIds = Object.keys (response);
         const result = {};
@@ -1020,18 +1013,6 @@ module.exports = class poloniex extends Exchange {
             request['currencyPair'] = market['id'];
         }
         const response = await this.privatePostCancelAllOrders (this.extend (request, params));
-        //
-        //     {
-        //         "success": 1,
-        //         "message": "Orders canceled",
-        //         "orderNumbers": [
-        //             503749,
-        //             888321,
-        //             7315825,
-        //             7316824
-        //         ]
-        //     }
-        //
         const orderIds = this.safeValue (response, 'orderNumbers', []);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i].toString ();
@@ -1048,23 +1029,6 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
         }, params));
-        //
-        //     {
-        //         success: 1,
-        //         result: {
-        //             '6071071': {
-        //                 status: 'Open',
-        //                 rate: '0.40000000',
-        //                 amount: '1.00000000',
-        //                 currencyPair: 'BTC_ETH',
-        //                 date: '2018-10-17 17:04:50',
-        //                 total: '0.40000000',
-        //                 type: 'buy',
-        //                 startingAmount: '1.00000',
-        //             },
-        //         },
-        //     }
-        //
         const result = this.safeValue (response['result'], id);
         if (result === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
@@ -1170,46 +1134,6 @@ module.exports = class poloniex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
-        //
-        //     {    deposits: [ {      currency: "BTC",
-        //                              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                               amount: "0.01063000",
-        //                        confirmations:  1,
-        //                                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                            timestamp:  1507916888,
-        //                               status: "COMPLETE"                                                          },
-        //                      {      currency: "ETH",
-        //                              address: "0x20108ba20b65c04d82909e91df06618107460197",
-        //                               amount: "4.00000000",
-        //                        confirmations:  38,
-        //                                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                            timestamp:  1525060430,
-        //                               status: "COMPLETE"                                                            }  ],
-        //       withdrawals: [ { withdrawalNumber:  8224394,
-        //                                currency: "EMC2",
-        //                                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                                  amount: "63.10796020",
-        //                                     fee: "0.01000000",
-        //                               timestamp:  1510819838,
-        //                                  status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                               ipAddress: "5.220.220.200"                                                               },
-        //                      { withdrawalNumber:  9290444,
-        //                                currency: "ETH",
-        //                                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                                  amount: "0.15500000",
-        //                                     fee: "0.00500000",
-        //                               timestamp:  1514099289,
-        //                                  status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                               ipAddress: "5.228.227.214"                                                                 },
-        //                      { withdrawalNumber:  11518260,
-        //                                currency: "BTC",
-        //                                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                                  amount: "0.20000000",
-        //                                     fee: "0.00050000",
-        //                               timestamp:  1527918155,
-        //                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                               ipAddress: "211.8.195.26"                                                                }    ] }
-        //
         return response;
     }
 
@@ -1266,38 +1190,6 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //
-        // deposits
-        //
-        //     {
-        //         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        //         "type": "deposit",
-        //         "amount": "49798.01987021",
-        //         "status": "COMPLETE",
-        //         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
-        //         "currency": "DOGE",
-        //         "timestamp": 1524321838,
-        //         "confirmations": 3371,
-        //         "depositNumber": 134587098
-        //     }
-        //
-        // withdrawals
-        //
-        //     {
-        //         "fee": "0.00050000",
-        //         "type": "withdrawal",
-        //         "amount": "0.40234387",
-        //         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
-        //         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
-        //         "currency": "BTC",
-        //         "canCancel": 0,
-        //         "ipAddress": "185.230.101.31",
-        //         "paymentID": null,
-        //         "timestamp": 1523834337,
-        //         "canResendEmail": 0,
-        //         "withdrawalNumber": 11162900
-        //     }
-        //
         let timestamp = this.safeInteger (transaction, 'timestamp');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
