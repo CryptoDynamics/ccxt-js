@@ -924,7 +924,7 @@ module.exports = class poloniex extends Exchange {
         };
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const order = this.parseOrder (this.extend ({
+        let order = this.parseOrder (this.extend ({
             'timestamp': timestamp,
             'status': 'open',
             'type': type,
@@ -934,7 +934,7 @@ module.exports = class poloniex extends Exchange {
             'total': response['total']
         }, response), market);
         const id = order['id'];
-
+        order['total'] = response['total']
         this.orders[id] = order;
         return this.extend (order);
     }
