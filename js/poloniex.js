@@ -750,7 +750,6 @@ module.exports = class poloniex extends Exchange {
         const price = this.safeFloat2 (order, 'price', 'rate');
         const remaining = this.safeFloat (order, 'amount');
         const amount = this.safeFloat (order, 'startingAmount', remaining);
-        const total = this.safeFloat (order, 'total');
         let filled = undefined;
         let cost = 0;
         if (amount !== undefined) {
@@ -793,7 +792,6 @@ module.exports = class poloniex extends Exchange {
             'price': price,
             'cost': cost,
             'amount': amount,
-            'total': total,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
@@ -878,16 +876,19 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const since = this.safeValue (params, 'since');
-        const limit = this.safeValue (params, 'limit');
-        const request = this.omit (params, [ 'since', 'limit' ]);
-        const orders = await this.fetchOrders (symbol, since, limit, request);
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] === id) {
-                return orders[i];
-            }
+        id = id.toString ();
+        const response = await this.privatePostReturnOrderStatus (this.extend ({
+            'orderNumber': id,
+        }, params));
+        const result = this.safeValue (response['result'], id);
+        if (result === undefined) {
+            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
+        const order = this.parseOrder (result);
+        order['id'] = id;
+        this.orders[id] = order;
+        return order;
+
     }
 
     filterOrdersByStatus (orders, status) {
@@ -930,11 +931,9 @@ module.exports = class poloniex extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'amount': amount,
-            'total': response['total']
+            'amount': amount
         }, response), market);
         const id = order['id'];
-        order['total'] = response['total']
         this.orders[id] = order;
         return this.extend (order);
     }
