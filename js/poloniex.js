@@ -839,62 +839,28 @@ module.exports = class poloniex extends Exchange {
             this.orders[openOrders[j]['id']] = openOrders[j];
         }
         const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = ('id' in params) ? [params['id']]: Object.keys (this.orders);
+        const cachedOrderIds = Object.keys (this.orders);
         const result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
             const id = cachedOrderIds[k];
             if (id in openOrdersIndexedById) {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
-                trades = this.parseTrades(await this.fetchOrderTrades(id, symbol));
-                if (trades.length){
-                    amount = 0;
-                    cost = 0;
-                    filled = 0;
-                    price = 0;
-                    trades.forEach(trade => {
-                        amount += trade['amount'];
-                        cost += trade['cost'];
-                        filled += trade['amount'];
-                        price += trade['price'];
-                    });
-
-                    price = price / trades.length;
-
-                    this.orders[id] = {
-                        'id': id,
-                        'timestamp': trades[0]['timestamp'],
-                        'datetime': trades[0]['datetime'],
-                        'lastTradeTimestamp': undefined,
+                let order = this.orders[id];
+                if (order['status'] === 'open') {
+                    order = this.extend (order, {
                         'status': 'closed',
-                        'symbol': trades[0]['symbol'],
-                        'type': trades[0]['type'],
-                        'side': trades[0]['side'],
-                        'price': trades[0]['price'],
-                        'cost': cost,
-                        'amount': amount,
-                        'filled': filled,
-                        'remaining': 0,
-                        'trades': trades,
-                        'fee': undefined,
-                    };
+                        'cost': undefined,
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    });
+                    if (order['cost'] === undefined) {
+                        if (order['filled'] !== undefined) {
+                            order['cost'] = order['filled'] * order['price'];
+                        }
+                    }
+                    this.orders[id] = order;
                 }
-
-                // let order = this.orders[id];
-                // if (order['status'] === 'open') {
-                //     order = this.extend (order, {
-                //         'status': 'closed',
-                //         'cost': undefined,
-                //         'filled': order['amount'],
-                //         'remaining': 0.0,
-                //     });
-                //     if (order['cost'] === undefined) {
-                //         if (order['filled'] !== undefined) {
-                //             order['cost'] = order['filled'] * order['price'];
-                //         }
-                //     }
-
-                // }
             }
             const order = this.orders[id];
             if (market !== undefined) {
@@ -909,17 +875,52 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const since = this.safeValue (params, 'since');
-        const limit = this.safeValue (params, 'limit');
-        const request = this.omit (params, [ 'since', 'limit' ]);
-        this.extend({id: id}, request)
-        const orders = await this.fetchOrders (symbol, since, limit, request);
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] === id) {
-                return orders[i];
+        id = id.toString ();
+        const response = await this.privatePostReturnOrderStatus (this.extend ({
+            'orderNumber': id,
+        }, params));
+        const result = this.safeValue (response['result'], id);
+        if (result === undefined) {
+            trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
+            if (trades.length){
+                amount = 0;
+                cost = 0;
+                filled = 0;
+                price = 0;
+                trades.forEach(trade => {
+                    amount += trade['amount'];
+                    cost += trade['cost'];
+                    filled += trade['amount'];
+                    price += trade['price'];
+                });
+
+                price = price / trades.length;
+
+                order = {
+                    'id': id,
+                    'timestamp': trades[0]['timestamp'],
+                    'datetime': trades[0]['datetime'],
+                    'lastTradeTimestamp': undefined,
+                    'status': 'closed',
+                    'symbol': trades[0]['symbol'],
+                    'type': trades[0]['type'],
+                    'side': trades[0]['side'],
+                    'price': trades[0]['price'],
+                    'cost': cost,
+                    'amount': amount,
+                    'filled': filled,
+                    'remaining': 0,
+                    'trades': trades,
+                    'fee': undefined,
+                };
+                return order;
             }
+        }else{
+            const order = this.parseOrder (result);
+            order['id'] = id;
+            this.orders[id] = order;
+            return order;
         }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
