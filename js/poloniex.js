@@ -881,12 +881,12 @@ module.exports = class poloniex extends Exchange {
         }, params));
         const result = this.safeValue (response['result'], id);
         if (result === undefined) {
-            trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
+            let trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
             if (trades.length){
-                amount = 0;
-                cost = 0;
-                filled = 0;
-                price = 0;
+                let amount = 0;
+                let cost = 0;
+                let filled = 0;
+                let price = 0;
                 trades.forEach(trade => {
                     amount += trade['amount'];
                     cost += trade['cost'];
@@ -896,7 +896,7 @@ module.exports = class poloniex extends Exchange {
 
                 price = price / trades.length;
 
-                order = {
+                let order = {
                     'id': id,
                     'timestamp': trades[0]['timestamp'],
                     'datetime': trades[0]['datetime'],
