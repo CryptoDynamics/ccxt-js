@@ -30,14 +30,14 @@ SOFTWARE.
 
 const Exchange  = require ('./js/base/Exchange')
     , functions = require ('./js/base/functions')
-    , errors    = require ('./js/base/errors')
+    , errors    = require ('./js/base/errors');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.714'
+const version = '1.18.714';
 
-Exchange.ccxtVersion = version
+Exchange.ccxtVersion = version;
 
 //-----------------------------------------------------------------------------
 

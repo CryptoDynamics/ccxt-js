@@ -912,7 +912,8 @@ module.exports = class poloniex extends Exchange {
         const since = this.safeValue (params, 'since');
         const limit = this.safeValue (params, 'limit');
         const request = this.omit (params, [ 'since', 'limit' ]);
-        const orders = await this.fetchOrders (symbol, since, limit, request, {id: id});
+        this.extend({id: id}, request)
+        const orders = await this.fetchOrders (symbol, since, limit, request);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] === id) {
                 return orders[i];
