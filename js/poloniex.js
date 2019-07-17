@@ -645,7 +645,6 @@ module.exports = class poloniex extends Exchange {
             };
         }
         return {
-            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -848,20 +847,33 @@ module.exports = class poloniex extends Exchange {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
                 let order = this.orders[id];
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
-                        'status': 'closed',
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined) {
-                            order['cost'] = order['filled'] * order['price'];
-                        }
-                    }
-                    this.orders[id] = order;
-                }
+                trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
+                order['status'] = 'closed';
+                cost = 0;
+                filled = 0;
+                trades.forEach(trade => {
+                    cost += trade['cost'];
+                    filled += trade['amount'];
+                });
+                order['filled'] = filled;
+                order['cost'] = cost;
+                this.orders[id] = order;
+
+                // let order = this.orders[id];
+                // if (order['status'] === 'open') {
+                //     order = this.extend (order, {
+                //         'status': 'closed',
+                //         'cost': undefined,
+                //         'filled': order['amount'],
+                //         'remaining': 0.0,
+                //     });
+                //     if (order['cost'] === undefined) {
+                //         if (order['filled'] !== undefined) {
+                //             order['cost'] = order['filled'] * order['price'];
+                //         }
+                //     }
+
+                // }
             }
             const order = this.orders[id];
             if (market !== undefined) {
@@ -876,19 +888,16 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        id = id.toString ();
-        const response = await this.privatePostReturnOrderStatus (this.extend ({
-            'orderNumber': id,
-        }, params));
-        const result = this.safeValue (response['result'], id);
-        if (result === undefined) {
-            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
+        const since = this.safeValue (params, 'since');
+        const limit = this.safeValue (params, 'limit');
+        const request = this.omit (params, [ 'since', 'limit' ]);
+        const orders = await this.fetchOrders (symbol, since, limit, request);
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['id'] === id) {
+                return orders[i];
+            }
         }
-        const order = this.parseOrder (result);
-        order['id'] = id;
-        this.orders[id] = order;
-        return order;
-
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
