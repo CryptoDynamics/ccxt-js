@@ -846,18 +846,39 @@ module.exports = class poloniex extends Exchange {
             if (id in openOrdersIndexedById) {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
-                let order = this.orders[id];
                 trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
-                order['status'] = 'closed';
-                cost = 0;
-                filled = 0;
-                trades.forEach(trade => {
-                    cost += trade['cost'];
-                    filled += trade['amount'];
-                });
-                order['filled'] = filled;
-                order['cost'] = cost;
-                this.orders[id] = order;
+                if (trades.length){
+                    amount = 0;
+                    cost = 0;
+                    filled = 0;
+                    price = 0;
+                    trades.forEach(trade => {
+                        amount += trade['amount'];
+                        cost += trade['cost'];
+                        filled += trade['amount'];
+                        price += trade['price'];
+                    });
+
+                    price = price / trades.length;
+
+                    this.orders[id] = {
+                        'id': id,
+                        'timestamp': trades[0]['timestamp'],
+                        'datetime': trades[0]['datetime'],
+                        'lastTradeTimestamp': undefined,
+                        'status': 'closed',
+                        'symbol': trades[0]['symbol'],
+                        'type': trades[0]['type'],
+                        'side': trades[0]['side'],
+                        'price': trades[0]['price'],
+                        'cost': cost,
+                        'amount': amount,
+                        'filled': filled,
+                        'remaining': 0,
+                        'trades': trades,
+                        'fee': undefined,
+                    };
+                }
 
                 // let order = this.orders[id];
                 // if (order['status'] === 'open') {
