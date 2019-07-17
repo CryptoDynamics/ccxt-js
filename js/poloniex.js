@@ -839,14 +839,14 @@ module.exports = class poloniex extends Exchange {
             this.orders[openOrders[j]['id']] = openOrders[j];
         }
         const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
+        const cachedOrderIds = ('id' in params) ? [params['id']]: Object.keys (this.orders);
         const result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
             const id = cachedOrderIds[k];
             if (id in openOrdersIndexedById) {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
-                trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
+                trades = this.parseTrades(await this.fetchOrderTrades(id, symbol));
                 if (trades.length){
                     amount = 0;
                     cost = 0;
@@ -912,7 +912,7 @@ module.exports = class poloniex extends Exchange {
         const since = this.safeValue (params, 'since');
         const limit = this.safeValue (params, 'limit');
         const request = this.omit (params, [ 'since', 'limit' ]);
-        const orders = await this.fetchOrders (symbol, since, limit, request);
+        const orders = await this.fetchOrders (symbol, since, limit, request, {id: id});
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] === id) {
                 return orders[i];
