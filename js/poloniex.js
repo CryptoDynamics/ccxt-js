@@ -886,20 +886,22 @@ module.exports = class poloniex extends Exchange {
             if (trades.length){
                 let amount = 0;
                 let cost = 0;
+                let fee = 0;
                 let price = 0;
                 trades.forEach(trade => {
                     amount += trade['amount'];
                     cost += trade['cost'];
                     price += trade['price'];
+                    fee += trade['fee']['cost'];
                 });
 
                 price = price / trades.length;
 
                 let order = {
                     'id': id,
-                    'timestamp': trades[0]['timestamp'],
-                    'datetime': trades[0]['datetime'],
-                    'lastTradeTimestamp': undefined,
+                    'timestamp': trades[trades.length - 1]['timestamp'],
+                    'datetime': trades[trades.length - 1]['datetime'],
+                    'lastTradeTimestamp': trades[trades.length - 1]['timestamp'],
                     'status': 'closed',
                     'symbol': trades[0]['symbol'],
                     'type': trades[0]['type'],
@@ -911,9 +913,8 @@ module.exports = class poloniex extends Exchange {
                     'filled': amount,
                     'remaining': 0,
                     'trades': trades,
-                    'fee': undefined,
+                    'fee': fee,
                 };
-                // console.log(order);
                 return order;
             }else {
                 return [];
