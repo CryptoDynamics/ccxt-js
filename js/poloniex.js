@@ -913,6 +913,7 @@ module.exports = class poloniex extends Exchange {
                     'trades': trades,
                     'fee': undefined,
                 };
+                console.log(order);
                 return order;
             }
         }else{
