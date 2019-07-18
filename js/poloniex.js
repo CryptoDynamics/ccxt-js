@@ -882,6 +882,7 @@ module.exports = class poloniex extends Exchange {
         const result = this.safeValue (response['result'], id);
         if (result === undefined) {
             let trades = this.parseTrades(this.fetchOrderTrades(id, symbol));
+            return trades;
             if (trades.length){
                 let amount = 0;
                 let cost = 0;
