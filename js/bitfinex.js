@@ -838,7 +838,6 @@ module.exports = class bitfinex extends Exchange {
         }
         return {
             'id': id,
-            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
