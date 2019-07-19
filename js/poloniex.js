@@ -630,8 +630,8 @@ module.exports = class poloniex extends Exchange {
             let currency = undefined;
             if (side === 'buy') {
                 currency = base;
-                feeCost = this.feeToPrecision(amount * rate);
-                feeAmount = this.feeToPrecision(cost * rate);
+                feeCost = this.feeToPrecision(symbol, amount * rate);
+                feeAmount = this.feeToPrecision(symbol, cost * rate);
             } else {
                 currency = quote;
                 if (cost !== undefined) {
