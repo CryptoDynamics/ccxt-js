@@ -630,15 +630,15 @@ module.exports = class poloniex extends Exchange {
             let currency = undefined;
             if (side === 'buy') {
                 currency = base;
-                feeCost = amount * rate;
-                feeAmount = cost * rate;
+                feeCost = this.feeToPrecision(amount * rate);
+                feeAmount = this.feeToPrecision(cost * rate);
             } else {
                 currency = quote;
                 if (cost !== undefined) {
-                    feeCost = cost * rate;
+                    feeCost = this.feeToPrecision(cost * rate);
                 }
                 if (amount !== undefined) {
-                    feeAmount = amount * rate;
+                    feeAmount = this.feeToPrecision(amount * rate);
                 }
             }
             fee = {
@@ -895,7 +895,8 @@ module.exports = class poloniex extends Exchange {
                 let cost = 0;
                 let filled = 0;
                 let total = 0;
-                let fee = 0;
+                let feeCost = 0;
+                let feeAmount = 0;
                 let price = 0;
                 trades.forEach(trade => {
                     amount += trade['amount'];
@@ -903,7 +904,8 @@ module.exports = class poloniex extends Exchange {
                     filled += trade['filled'];
                     total += trade['total'];
                     price += trade['price'];
-                    fee += trade['fee']['cost'];
+                    feeCost += trade['fee']['cost'];
+                    feeAmount += trade['fee']['amount'];
                 });
 
                 price = price / trades.length;
