@@ -625,30 +625,30 @@ module.exports = class poloniex extends Exchange {
         const amount = this.safeFloat (trade, 'amount');
         let feeCost = undefined;
         let feeAmount = undefined;
-        if ('fee' in trade) {
-            const rate = this.safeFloat (trade, 'fee');
-            let currency = undefined;
-            if (side === 'buy') {
-                currency = base;
-                feeCost = this.feeToPrecision(symbol, amount * rate);
-                feeAmount = this.feeToPrecision(symbol, cost * rate);
-            } else {
-                currency = quote;
-                if (cost !== undefined) {
-                    feeCost = this.feeToPrecision(symbol, cost * rate);
-                }
-                if (amount !== undefined) {
-                    feeAmount = this.feeToPrecision(symbol, amount * rate);
-                }
-            }
-            fee = {
-                'type': undefined,
-                'rate': rate,
-                'cost': feeCost,
-                'amount': feeAmount,
-                'currency': currency,
-            };
-        }
+        // if ('fee' in trade) {
+        //     const rate = this.safeFloat (trade, 'fee');
+        //     let currency = undefined;
+        //     if (side === 'buy') {
+        //         currency = base;
+        //         feeCost = this.feeToPrecision(symbol, amount * rate);
+        //         feeAmount = this.feeToPrecision(symbol, cost * rate);
+        //     } else {
+        //         currency = quote;
+        //         if (cost !== undefined) {
+        //             feeCost = this.feeToPrecision(symbol, cost * rate);
+        //         }
+        //         if (amount !== undefined) {
+        //             feeAmount = this.feeToPrecision(symbol, amount * rate);
+        //         }
+        //     }
+        //     fee = {
+        //         'type': undefined,
+        //         'rate': rate,
+        //         'cost': feeCost,
+        //         'amount': feeAmount,
+        //         'currency': currency,
+        //     };
+        // }
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -659,9 +659,9 @@ module.exports = class poloniex extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost - feeCost,
+            'cost': cost,
             'total': cost,
-            'filled': amount - feeAmount,
+            'filled': amount,
             'fee': fee,
         };
     }
