@@ -657,8 +657,10 @@ module.exports = class poloniex extends Exchange {
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount - feeAmount,
+            'amount': amount,
             'cost': cost - feeCost,
+            'total': cost,
+            'filled': amount - feeAmount,
             'fee': fee,
         };
     }
@@ -890,11 +892,15 @@ module.exports = class poloniex extends Exchange {
             if (trades.length){
                 let amount = 0;
                 let cost = 0;
+                let filled = 0;
+                let total = 0;
                 let fee = 0;
                 let price = 0;
                 trades.forEach(trade => {
                     amount += trade['amount'];
                     cost += trade['cost'];
+                    filled += trade['filled'];
+                    total += trade['total'];
                     price += trade['price'];
                     fee += trade['fee']['cost'];
                 });
@@ -912,9 +918,9 @@ module.exports = class poloniex extends Exchange {
                     'side': trades[0]['side'],
                     'price': price,
                     'cost': cost,
-                    'total': cost,
+                    'total': total,
                     'amount': amount,
-                    'filled': amount,
+                    'filled': filled,
                     'remaining': 0,
                     'trades': trades,
                     'fee': fee,
