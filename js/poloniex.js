@@ -632,20 +632,20 @@ module.exports = class poloniex extends Exchange {
             let currency = undefined;
             if (side === 'buy') {
                 currency = base;
-                feeAmount = amount * rate;
+                feeAmount = this.feeToPrecision(symbol, amount * rate);
                 filled = amount - feeAmount;
             } else {
                 currency = quote;
                 if (total !== undefined) {
-                    feeCost = total * rate;
+                    feeCost = this.feeToPrecision(symbol, total * rate);
                     cost = total - feeCost;
                 }
             }
             fee = {
                 'type': undefined,
                 'rate': rate,
-                'feeCost': feeCost,
-                'feeAmount': feeAmount,
+                'cost': feeCost,
+                'amount': feeAmount,
                 'currency': currency,
             };
         }
@@ -904,8 +904,8 @@ module.exports = class poloniex extends Exchange {
                     filled += trade['filled'];
                     total += trade['total'];
                     price += trade['price'];
-                    // feeCost += trade['fee']['cost'];
-                    // feeAmount += trade['fee']['amount'];
+                    feeCost += trade['fee']['cost'];
+                    feeAmount += trade['fee']['amount'];
                 });
 
                 price = price / trades.length;
@@ -926,7 +926,8 @@ module.exports = class poloniex extends Exchange {
                     'filled': filled,
                     'remaining': 0,
                     'trades': trades,
-                    // 'fee': feeAmount,
+                    'feeAmount': feeAmount,
+                    'feeCost': feeCost,
                 };
                 return order;
             }else {
