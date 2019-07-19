@@ -635,10 +635,10 @@ module.exports = class poloniex extends Exchange {
             } else {
                 currency = quote;
                 if (cost !== undefined) {
-                    feeCost = this.feeToPrecision(cost * rate);
+                    feeCost = this.feeToPrecision(symbol, cost * rate);
                 }
                 if (amount !== undefined) {
-                    feeAmount = this.feeToPrecision(amount * rate);
+                    feeAmount = this.feeToPrecision(symbol, amount * rate);
                 }
             }
             fee = {
@@ -926,7 +926,7 @@ module.exports = class poloniex extends Exchange {
                     'filled': filled,
                     'remaining': 0,
                     'trades': trades,
-                    'fee': fee,
+                    'fee': feeAmount,
                 };
                 return order;
             }else {

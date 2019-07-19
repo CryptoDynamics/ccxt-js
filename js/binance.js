@@ -518,7 +518,6 @@ module.exports = class binance extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -1175,26 +1174,6 @@ module.exports = class binance extends Exchange {
 
     async fetchFundingFees (codes = undefined, params = {}) {
         const response = await this.wapiGetAssetDetail (params);
-        //
-        //     {
-        //         "success": true,
-        //         "assetDetail": {
-        //             "CTR": {
-        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
-        //                 "depositStatus": false,//deposit status
-        //                 "withdrawFee": 35, // withdraw fee
-        //                 "withdrawStatus": true, //withdraw status
-        //                 "depositTip": "Delisted, Deposit Suspended" //reason
-        //             },
-        //             "SKY": {
-        //                 "minWithdrawAmount": "0.02000000",
-        //                 "depositStatus": true,
-        //                 "withdrawFee": 0.01,
-        //                 "withdrawStatus": true
-        //             }
-        //         }
-        //     }
-        //
         const detail = this.safeValue (response, 'assetDetail', {});
         const ids = Object.keys (detail);
         const withdrawFees = {};
