@@ -560,7 +560,6 @@ module.exports = class poloniex extends Exchange {
             result[code] = {
                 'id': id,
                 'code': code,
-                'info': currency,
                 'name': currency['name'],
                 'active': active,
                 'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
@@ -627,6 +626,7 @@ module.exports = class poloniex extends Exchange {
         if ('fee' in trade) {
             const rate = this.safeFloat (trade, 'fee');
             let feeCost = undefined;
+            let feeAmount = undefined;
             let currency = undefined;
             if (side === 'buy') {
                 currency = base;
@@ -636,11 +636,15 @@ module.exports = class poloniex extends Exchange {
                 if (cost !== undefined) {
                     feeCost = cost * rate;
                 }
+                if (amount !== undefined) {
+                    feeAmount = amount * rate;
+                }
             }
             fee = {
                 'type': undefined,
                 'rate': rate,
                 'cost': feeCost,
+                'amount': feeAmount,
                 'currency': currency,
             };
         }
@@ -653,8 +657,8 @@ module.exports = class poloniex extends Exchange {
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount,
-            'cost': cost,
+            'amount': amount - feeAmount,
+            'cost': cost - feeCost,
             'fee': fee,
         };
     }
