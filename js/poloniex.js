@@ -905,7 +905,7 @@ module.exports = class poloniex extends Exchange {
                     total += trade['total'];
                     price += trade['price'];
                     feeCost += trade['fee']['cost'];
-                    feeAmount += trade['fee']['amount'];
+                    feeAmount += parseFloat(trade['fee']['amount']);
                 });
 
                 price = price / trades.length;
