@@ -300,12 +300,22 @@ module.exports = class poloniex extends Exchange {
         let wallets = {'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
         let on_orders = {'exchange': {}, 'margin': {}, 'lending': {}};
         let active_loans = await this.fetchActiveLoans();
+        let open_loans = await this.fetchOpenLoans();
         active_loans.forEach(loan => {
             if (loan.symbol in on_orders['lending']){
                 on_orders['lending'][loan.symbol] += loan.amount;
             }else{
                 on_orders['lending'][loan.symbol] = loan.amount;
             }
+        });
+        Object.keys(open_loans).forEach(symbol => {
+            open_loans[symbol].forEach(loan => {
+                if (loan.symbol in on_orders['lending']){
+                    on_orders['lending'][loan.symbol] += loan.amount;
+                }else{
+                    on_orders['lending'][loan.symbol] = loan.amount;
+                }
+            });
         });
 
         Object.keys (available).forEach ( wallet => {
