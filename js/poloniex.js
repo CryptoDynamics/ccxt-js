@@ -307,8 +307,6 @@ module.exports = class poloniex extends Exchange {
                 on_orders['lending'][loan.symbol] = loan.amount;
             }
         });
-        return on_orders;
-
 
         Object.keys (response).forEach ( wallet => {
             Object.keys (response[wallet]).forEach ( symbol => {
@@ -325,10 +323,11 @@ module.exports = class poloniex extends Exchange {
             });
             if (Object.keys(on_orders[wallet]).length != 0){
                 Object.keys(on_orders[wallet]).forEach(symbol => {
+                    console.log(symbol, on_orders[wallet][symbol]);
                     wallets[wallet][symbol] = {};
                     wallets[wallet][symbol]['available'] = 0;
                     wallets[wallet][symbol]['on_orders'] = on_orders[wallet][symbol];
-                    wallets[wallet][symbol]['total'] = wallets[wallet][symbol]['on_orders'];
+                    wallets[wallet][symbol]['total'] = wallets[wallet][symbol]['available'] + wallets[wallet][symbol]['on_orders'];
                     if (wallets.total[symbol] === undefined) {
                         wallets.total[symbol] = wallets[wallet][symbol]['total'];
                     }else {
