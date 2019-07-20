@@ -377,6 +377,7 @@ module.exports = class poloniex extends Exchange {
         }
         const response = await this.privatePostReturnOpenLoanOffers(this.extend({}, request));
         let offers;
+        return response;
         if (symbol != undefined){
             offers = [];
             if (!(symbol in response)) {
