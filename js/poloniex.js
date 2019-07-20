@@ -314,7 +314,7 @@ module.exports = class poloniex extends Exchange {
                 wallets[wallet][symbol] = {};
                 wallets[wallet][symbol]['available'] = response[wallet][symbol];
                 wallets[wallet][symbol]['on_orders'] = (symbol in on_orders[wallet]) ? on_orders[wallet][symbol]: 0;
-                wallets[wallet][symbol]['total'] = response[wallet][symbol] + on_orders[wallet][symbol];
+                wallets[wallet][symbol]['total'] = wallets[wallet][symbol]['available'] + wallets[wallet][symbol]['on_orders'];
                 delete on_orders[wallet][symbol];
                 if (wallets.total[symbol] === undefined) {
                     wallets.total[symbol] = wallets[wallet][symbol]['total'];
@@ -330,7 +330,7 @@ module.exports = class poloniex extends Exchange {
                         wallets[wallet][symbol] = {};
                         wallets[wallet][symbol]['available'] = 0;
                         wallets[wallet][symbol]['on_orders'] = on_orders[wallet][symbol];
-                        wallets[wallet][symbol]['total'] = on_orders[wallet][symbol];
+                        wallets[wallet][symbol]['total'] = wallets[wallet][symbol]['on_orders'];
                         if (wallets.total[symbol] === undefined) {
                             wallets.total[symbol] = wallets[wallet][symbol]['total'];
                         }else {
