@@ -307,6 +307,7 @@ module.exports = class poloniex extends Exchange {
                 on_orders['lending'][loan.symbol] = loan.amount;
             }
         });
+        return on_orders;
 
 
         Object.keys (response).forEach ( wallet => {
@@ -324,18 +325,14 @@ module.exports = class poloniex extends Exchange {
             });
             if (Object.keys(on_orders[wallet]).length != 0){
                 Object.keys(on_orders[wallet]).forEach(symbol => {
-                    if (symbol in wallets[wallet]){
-                        wallets[wallet][symbol]['on_orders'] += on_orders[wallet][symbol];
-                    }else{
-                        wallets[wallet][symbol] = {};
-                        wallets[wallet][symbol]['available'] = 0;
-                        wallets[wallet][symbol]['on_orders'] = on_orders[wallet][symbol];
-                        wallets[wallet][symbol]['total'] = wallets[wallet][symbol]['on_orders'];
-                        if (wallets.total[symbol] === undefined) {
-                            wallets.total[symbol] = wallets[wallet][symbol]['total'];
-                        }else {
-                            wallets.total[symbol] += wallets[wallet][symbol]['total'];
-                        }
+                    wallets[wallet][symbol] = {};
+                    wallets[wallet][symbol]['available'] = 0;
+                    wallets[wallet][symbol]['on_orders'] = on_orders[wallet][symbol];
+                    wallets[wallet][symbol]['total'] = wallets[wallet][symbol]['on_orders'];
+                    if (wallets.total[symbol] === undefined) {
+                        wallets.total[symbol] = wallets[wallet][symbol]['total'];
+                    }else {
+                        wallets.total[symbol] += wallets[wallet][symbol]['total'];
                     }
                 });
             }
