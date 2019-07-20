@@ -308,15 +308,15 @@ module.exports = class poloniex extends Exchange {
                 on_orders['lending'][loan.symbol] = loan.amount;
             }
         });
-        Object.keys(open_loans).forEach(symbol => {
-            open_loans[symbol].forEach(loan => {
-                if (loan.symbol in on_orders['lending']){
-                    on_orders['lending'][loan.symbol] += loan.amount;
-                }else{
-                    on_orders['lending'][loan.symbol] = loan.amount;
-                }
-            });
-        });
+        // Object.keys(open_loans).forEach(symbol => {
+        //     open_loans[symbol].forEach(loan => {
+        //         if (loan.symbol in on_orders['lending']){
+        //             on_orders['lending'][loan.symbol] += loan.amount;
+        //         }else{
+        //             on_orders['lending'][loan.symbol] = loan.amount;
+        //         }
+        //     });
+        // });
 
         Object.keys (available).forEach ( wallet => {
             Object.keys (available[wallet]).forEach ( symbol => {
@@ -378,15 +378,15 @@ module.exports = class poloniex extends Exchange {
             request = {'currency': symbol};
         }
         const response = await this.privatePostReturnOpenLoanOffers(this.extend({}, request));
-        let offers;
+        let offers = {};
         return response;
         if (symbol != undefined){
             offers = [];
             if (!(symbol in response)) {
                 return offers;
             }
-            response[symbol].forEach ((offer) => {
-                offers.push ({
+            response[symbol].forEach (offer => {
+                offers.push({
                     'order_id': offer['id'],
                     'symbol': symbol,
                     'rate': parseFloat (offer['rate']),
@@ -399,8 +399,8 @@ module.exports = class poloniex extends Exchange {
             offers = {};
             Object.keys(response).forEach(symbol => {
                 offers[symbol] = [];
-                response[symbol].forEach ((offer) => {
-                    offers[symbol].push ({
+                response[symbol].forEach (offer => {
+                    offers[symbol].push({
                         'order_id': offer['id'],
                         'symbol': symbol,
                         'rate': parseFloat (offer['rate']),
