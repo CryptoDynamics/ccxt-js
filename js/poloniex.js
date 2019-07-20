@@ -298,26 +298,54 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostReturnAvailableAccountBalances();
 
         let wallets = {'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
+        let on_orders = {'exchange': {}, 'margin': {}, 'lending': {}};
         let active_loans = await this.fetchActiveLoans();
         active_loans.forEach(loan => {
-            response['lending'][loan.symbol] = (loan.symbol in response['lending']) ? response['lending'][loan.symbol] + loan.amount: 0;
+            if (loan.symbol in on_orders['lending']){
+                on_orders['lending'][loan.symbol] += loan.amount;
+            }else{
+                on_orders['lending'][loan.symbol] = loan.amount;
+            }
         });
 
-        Object.keys (response).forEach ( wallet => {
 
+        Object.keys (response).forEach ( wallet => {
             Object.keys (response[wallet]).forEach ( symbol => {
                 wallets[wallet][symbol] = {};
                 wallets[wallet][symbol]['available'] = response[wallet][symbol];
-                wallets[wallet][symbol]['on_orders'] = response[wallet][symbol];
-                wallets[wallet][symbol]['total'] = response[wallet][symbol];
+                wallets[wallet][symbol]['on_orders'] = (symbol in on_orders[wallet]) ? on_orders[wallet][symbol]: 0;
+                wallets[wallet][symbol]['total'] = response[wallet][symbol] + on_orders[wallet][symbol];
+                delete on_orders[wallet][symbol];
                 if (wallets.total[symbol] === undefined) {
                     wallets.total[symbol] = wallets[wallet][symbol]['total'];
                 }else {
                     wallets.total[symbol] += wallets[wallet][symbol]['total'];
                 }
             });
+            if (on_orders[wallet].length != 0){
+                Object.keys(on_orders).forEach(symbol => {
+                    if (symbol in wallets[wallet]){
+                        wallets[wallet][symbol]['on_orders'] += on_orders[wallet][symbol];
+                    }else{
+                        wallets[wallet][symbol] = {};
+                        wallets[wallet][symbol]['available'] = 0;
+                        wallets[wallet][symbol]['on_orders'] = on_orders[wallet][symbol];
+                        wallets[wallet][symbol]['total'] = on_orders[wallet][symbol];
+                        if (wallets.total[symbol] === undefined) {
+                            wallets.total[symbol] = wallets[wallet][symbol]['total'];
+                        }else {
+                            wallets.total[symbol] += wallets[wallet][symbol]['total'];
+                        }
+                    }
+                });
+            }
         });
+
         return wallets;
+    }
+
+    addWallet(available, orders, total){
+
     }
 
     async fetchLoanBalance () {
