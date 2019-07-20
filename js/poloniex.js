@@ -371,7 +371,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOpenLoans (symbol = undefined) {
-        request = {};
+        let request = {};
         if (symbol != undefined){
             request = {'currency': symbol};
         }
