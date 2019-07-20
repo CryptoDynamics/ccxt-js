@@ -313,14 +313,15 @@ module.exports = class poloniex extends Exchange {
                 if (!(symbol in wallets[wallet])){
                     wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
                 }
-                wallets[wallet][symbol].available = available[wallet][symbol];
+                wallets[wallet][symbol].available = parseFloat(available[wallet][symbol]);
+                wallets[wallet][symbol].total += wallets[wallet][symbol].available;
             });
             Object.keys (on_orders[wallet]).forEach ( symbol => {
                 if (!(symbol in wallets[wallet])){
                     wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
                 }
                 wallets[wallet][symbol].on_orders = on_orders[wallet][symbol];
-                wallets[wallet][symbol].total += wallets[wallet][symbol].available + wallets[wallet][symbol].on_orders;
+                wallets[wallet][symbol].total += wallets[wallet][symbol].on_orders;
             });
         });
 
