@@ -370,22 +370,43 @@ module.exports = class poloniex extends Exchange {
         return offers;
     }
 
-    async fetchOpenLoans (symbol) {
-        const response = await this.privatePostReturnOpenLoanOffers (this.extend ({ 'currency': symbol }));
-        const offers = [];
-        if (!(symbol in response)) {
-            return offers;
+    async fetchOpenLoans (symbol = undefined) {
+        request = {};
+        if (symbol != undefined){
+            request = {'currency': symbol};
         }
-        response[symbol].forEach ((offer) => {
-            offers.push ({
-                'order_id': offer['id'],
-                'symbol': symbol,
-                'rate': parseFloat (offer['rate']),
-                'amount': parseFloat (offer['amount']),
-                'duration': parseFloat (offer['duration']),
-                'date': Date.parse (offer['date']) / 1000
+        const response = await this.privatePostReturnOpenLoanOffers (request);
+        let offers;
+        if (symbol != undefined){
+            offers = [];
+            if (!(symbol in response)) {
+                return offers;
+            }
+            response[symbol].forEach ((offer) => {
+                offers.push ({
+                    'order_id': offer['id'],
+                    'symbol': symbol,
+                    'rate': parseFloat (offer['rate']),
+                    'amount': parseFloat (offer['amount']),
+                    'duration': parseFloat (offer['duration']),
+                    'date': Date.parse (offer['date']) / 1000
+                });
             });
-        });
+        }else{
+            offers = {};
+            Object.keys(response).forEach(symbol => {
+                response[symbol].forEach ((offer) => {
+                    offers[symbol].push ({
+                        'order_id': offer['id'],
+                        'symbol': symbol,
+                        'rate': parseFloat (offer['rate']),
+                        'amount': parseFloat (offer['amount']),
+                        'duration': parseFloat (offer['duration']),
+                        'date': Date.parse (offer['date']) / 1000
+                    });
+                });
+            });
+        }
         return offers;
     }
 
