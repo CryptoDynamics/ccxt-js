@@ -322,7 +322,7 @@ module.exports = class poloniex extends Exchange {
                     wallets.total[symbol] += wallets[wallet][symbol]['total'];
                 }
             });
-            if (on_orders[wallet].length != 0){
+            if (Object.keys(on_orders).length != 0){
                 Object.keys(on_orders).forEach(symbol => {
                     if (symbol in wallets[wallet]){
                         wallets[wallet][symbol]['on_orders'] += on_orders[wallet][symbol];
