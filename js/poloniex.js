@@ -375,7 +375,7 @@ module.exports = class poloniex extends Exchange {
         if (symbol != undefined){
             request = {'currency': symbol};
         }
-        const response = await this.privatePostReturnOpenLoanOffers (request);
+        const response = await this.privatePostReturnOpenLoanOffers(this.extend({}, request));
         let offers;
         if (symbol != undefined){
             offers = [];
@@ -395,6 +395,7 @@ module.exports = class poloniex extends Exchange {
         }else{
             offers = {};
             Object.keys(response).forEach(symbol => {
+                offers[symbol] = [];
                 response[symbol].forEach ((offer) => {
                     offers[symbol].push ({
                         'order_id': offer['id'],
