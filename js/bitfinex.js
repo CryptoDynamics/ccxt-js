@@ -567,38 +567,39 @@ module.exports = class bitfinex extends Exchange {
         let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
         response.forEach(function (balance) {
             if (parseFloat (balance.amount) !== 0) {
+                let currency = this.commonCurrencyCode(balance.currency.toUpperCase());
                 switch (balance.type) {
                     case 'exchange':
-                        wallets.exchange[balance.currency.toUpperCase ()] = {};
-                        wallets.exchange[balance.currency.toUpperCase ()]['available'] = balance.available;
-                        wallets.exchange[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
-                        wallets.exchange[balance.currency.toUpperCase ()]['total'] = balance.amount;
-                        if (wallets.total[balance.currency.toUpperCase ()] === undefined) {
-                            wallets.total[balance.currency.toUpperCase ()] = balance.amount;
+                        wallets.exchange[currency] = {};
+                        wallets.exchange[currency]['available'] = balance.available;
+                        wallets.exchange[currency]['on_orders'] = balance.amount - balance.available;
+                        wallets.exchange[currency]['total'] = balance.amount;
+                        if (wallets.total[currency] === undefined) {
+                            wallets.total[currency] = balance.amount;
                         } else {
-                            wallets.total[balance.currency.toUpperCase ()] += balance.amount;
+                            wallets.total[currency] += balance.amount;
                         }
                         break;
                     case 'trading':
-                        wallets.margin[balance.currency.toUpperCase ()] = {};
-                        wallets.margin[balance.currency.toUpperCase ()]['available'] = balance.available;
-                        wallets.margin[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
-                        wallets.margin[balance.currency.toUpperCase ()]['total'] = balance.amount;
-                        if (wallets.total[balance.currency.toUpperCase ()] === undefined) {
-                            wallets.total[balance.currency.toUpperCase ()] = balance.amount;
+                        wallets.margin[currency] = {};
+                        wallets.margin[currency]['available'] = balance.available;
+                        wallets.margin[currency]['on_orders'] = balance.amount - balance.available;
+                        wallets.margin[currency]['total'] = balance.amount;
+                        if (wallets.total[currency] === undefined) {
+                            wallets.total[currency] = balance.amount;
                         } else {
-                            wallets.total[balance.currency.toUpperCase ()] += balance.amount;
+                            wallets.total[currency] += balance.amount;
                         }
                         break;
                     case 'deposit':
-                        wallets.lending[balance.currency.toUpperCase ()] = {};
-                        wallets.lending[balance.currency.toUpperCase ()]['available'] = balance.available;
-                        wallets.lending[balance.currency.toUpperCase ()]['on_orders'] = balance.amount - balance.available;
-                        wallets.lending[balance.currency.toUpperCase ()]['total'] = balance.amount;
-                        if (wallets.total[balance.currency.toUpperCase ()] === undefined) {
-                            wallets.total[balance.currency.toUpperCase ()] = balance.amount;
+                        wallets.lending[currency] = {};
+                        wallets.lending[currency]['available'] = balance.available;
+                        wallets.lending[currency]['on_orders'] = balance.amount - balance.available;
+                        wallets.lending[currency]['total'] = balance.amount;
+                        if (wallets.total[currency] === undefined) {
+                            wallets.total[currency] = balance.amount;
                         } else {
-                            wallets.total[balance.currency.toUpperCase ()] += balance.amount;
+                            wallets.total[currency] += balance.amount;
                         }
                         break;
                 }
@@ -625,7 +626,8 @@ module.exports = class bitfinex extends Exchange {
         const balances = {};
         response.forEach ((wallet) => {
             if (wallet['type'] === 'deposit' && parseFloat (wallet['available']) !== 0) {
-                balances[wallet['currency'].toUpperCase ()] = parseFloat (wallet['available']);
+                let currency = this.commonCurrencyCode(wallet['currency'].toUpperCase())
+                balances[currency] = parseFloat (wallet['available']);
             }
         });
         return balances;
@@ -664,7 +666,7 @@ module.exports = class bitfinex extends Exchange {
         const offers = [];
         response.forEach ((offer) => {
             offers.push ({ 'order_id': offer['id'],
-                'symbol': offer['currency'],
+                'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']) / 365,
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['period']),
@@ -682,7 +684,7 @@ module.exports = class bitfinex extends Exchange {
                 const earn = parseFloat (offer['rate']) / 365 * parseFloat (offer['period']) * parseFloat (offer['executed_amount']) / 100;
                 const fee = earn * per / 100;
                 offers.push ({ 'order_id': offer['id'],
-                    'symbol': offer['currency'],
+                    'symbol': this.commonCurrencyCode(offer['currency']),
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
                     'duration': parseFloat (offer['period']),

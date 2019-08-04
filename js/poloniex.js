@@ -302,6 +302,7 @@ module.exports = class poloniex extends Exchange {
         let active_loans = await this.fetchActiveLoans();
         // let open_loans = await this.fetchOpenLoans();
         active_loans.forEach(loan => {
+            loan.symbol = this.commonCurrencyCode(loan.symbol);
             if (loan.symbol in on_orders['lending']){
                 on_orders['lending'][loan.symbol] += loan.amount;
             }else{
@@ -320,6 +321,7 @@ module.exports = class poloniex extends Exchange {
 
         Object.keys (available).forEach ( wallet => {
             Object.keys (available[wallet]).forEach ( symbol => {
+                symbol = this.commonCurrencyCode(symbol);
                 if (!(symbol in wallets[wallet])){
                     wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
                 }
@@ -331,6 +333,7 @@ module.exports = class poloniex extends Exchange {
                 wallets.total[symbol] += wallets[wallet][symbol].total;
             });
             Object.keys (on_orders[wallet]).forEach ( symbol => {
+                symbol = this.commonCurrencyCode(symbol);
                 if (!(symbol in wallets[wallet])){
                     wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
                 }
@@ -386,7 +389,7 @@ module.exports = class poloniex extends Exchange {
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
-                'date': Date.parse (offer['date']) / 1000
+                'date': Date.parse(offer['date']) / 1000
             });
         });
         return offers;
