@@ -626,7 +626,7 @@ module.exports = class bitfinex extends Exchange {
         const balances = {};
         response.forEach ((wallet) => {
             if (wallet['type'] === 'deposit' && parseFloat (wallet['available']) !== 0) {
-                let currency = this.commonCurrencyCode(wallet['currency'].toUpperCase())
+                let currency = this.commonCurrencyCode(wallet['currency'].toUpperCase());
                 balances[currency] = parseFloat (wallet['available']);
             }
         });
