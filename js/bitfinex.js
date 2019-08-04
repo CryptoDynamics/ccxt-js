@@ -562,10 +562,10 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchWalletBalance () {
-        const response = await this.privatePostBalances ();
+        const response = await this.privatePostBalances();
 
         let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
-        response.forEach(function (balance) {
+        response.forEach(balance => {
             if (parseFloat (balance.amount) !== 0) {
                 let currency = this.commonCurrencyCode(balance.currency.toUpperCase());
                 switch (balance.type) {
@@ -624,7 +624,7 @@ module.exports = class bitfinex extends Exchange {
     async fetchLoanBalance (params = {}) {
         const response = await this.privatePostBalances (this.extend ());
         const balances = {};
-        response.forEach ((wallet) => {
+        response.forEach (wallet => {
             if (wallet['type'] === 'deposit' && parseFloat (wallet['available']) !== 0) {
                 let currency = this.commonCurrencyCode(wallet['currency'].toUpperCase());
                 balances[currency] = parseFloat (wallet['available']);
