@@ -303,6 +303,7 @@ module.exports = class bitfinex extends Exchange {
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
+                'USD': 'USDT',
                 'UTN': 'UTNP',
                 'XCH': 'XCHF',
             },
