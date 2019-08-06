@@ -440,6 +440,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchLendingSymbols(){
+        await this.loadMarkets ();
         let symbols = [];
         let lending_symbols = ["ZRX", "ZEC", "XRP", "XMR", "USDT", "USD", "SAN", "OMG", "NEO", "LTC", "LEO", "JPY", "IOTA", "GBP", "EUR", "ETP", "ETH", "ETC", "EOS", "EDO", "DASH", "BTG", "BTC", "BCV", "BCH"];
         lending_symbols.forEach(symbol => {
@@ -617,6 +618,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchLoanBook (symbol, count = 1) {
+        await this.loadMarkets ();
         const response = await this.publicGetLendbookCurrency (this.extend ({
             'currency': this.marketId(symbol),
             'limit_bids': 0,
@@ -638,6 +640,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchOpenLoans (symbol) {
+        await this.loadMarkets ();
         const response = await this.privatePostOffers ();
         const offers = [];
         symbol = this.marketId(symbol);
@@ -693,6 +696,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOfferNew (this.extend ({
             'currency': this.marketId(symbol),
             'amount': amount.toString (),
