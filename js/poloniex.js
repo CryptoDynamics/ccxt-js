@@ -371,7 +371,9 @@ module.exports = class poloniex extends Exchange {
 
     async fetchLoanBook (symbol, count = 1) {
         await this.loadMarkets ();
-        const response = await this.publicGetReturnLoanOrders (this.extend ({ 'currency': this.marketId(symbol) }));
+        const response = await this.publicGetReturnLoanOrders (this.extend ({
+            'currency': this.currencyId(symbol)
+        }));
         const offers = [];
         if (!('offers' in response)) return offers;
         response['offers'].forEach ((offer) => {
@@ -397,7 +399,7 @@ module.exports = class poloniex extends Exchange {
 
     async fetchOpenLoans (symbol) {
         await this.loadMarkets ();
-        const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': this.marketId(symbol)}));
+        const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': this.currencyId(symbol)}));
 
         let offers = [];
         if (!(symbol in response)) {
@@ -456,7 +458,7 @@ module.exports = class poloniex extends Exchange {
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostCreateLoanOffer (this.extend ({
-            'currency': this.marketId(symbol),
+            'currency': this.currencyId(symbol),
             'amount': amount,
             'duration': duration,
             'autoRenew': renew,
@@ -478,7 +480,7 @@ module.exports = class poloniex extends Exchange {
     async transferBalance (symbol, amount, from, to) {
         await this.loadMarkets ();
         const response = await this.privatePostTransferBalance (this.extend ( {
-            'currency': this.marketId(symbol),
+            'currency': this.currencyId(symbol),
             'amount': amount,
             'fromAccount': from,
             'toAccount': to } ));
