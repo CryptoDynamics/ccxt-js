@@ -633,9 +633,9 @@ module.exports = class bitfinex extends Exchange {
     async fetchLoanBooks(count = 1){
         let symbols = await this.fetchLendingSymbols();
         let books = {};
-        symbols.forEach(async (symbol) => {
-            books[symbol] = await this.fetchLoanBook(symbol, count);
-        });
+        for (let i = 0; i < symbols.length; i++){
+            books[symbols[i]] = await this.fetchLoanBook(symbols[i], count);
+        }
         return books;
     }
 
