@@ -271,7 +271,7 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async fetchLendingSymbol(){
+    async fetchLendingSymbols(){
         let symbols = [];
         this.lending_symbols.forEach(symbol => {
             symbols.push(this.commonCurrencyCode(symbol));
