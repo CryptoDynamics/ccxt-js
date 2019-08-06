@@ -151,6 +151,7 @@ module.exports = class poloniex extends Exchange {
                 'SOC': 'SOCC',
                 'XAP': 'API Coin',
             },
+            'lending_symbols': ["BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "USDT", "XMR", "XRP", "ETH", "FCT", "ETC", "EOS", "USDC", "BCHABC", "BCHSV", "ATOM"],
             'options': {
                 'limits': {
                     'cost': {
@@ -268,6 +269,14 @@ module.exports = class poloniex extends Exchange {
             }));
         }
         return result;
+    }
+
+    async fetchLendingSymbol(){
+        let symbols = [];
+        this.lending_symbols.forEach(symbol => {
+            symbols.push(this.commonCurrencyCode(symbol));
+        });
+        return symbols;
     }
 
     async fetchBalance (params = {}) {

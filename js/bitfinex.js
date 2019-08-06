@@ -399,6 +399,7 @@ module.exports = class bitfinex extends Exchange {
                     'ZRX': 'zrx',
                     'XTZ': 'tezos',
                 },
+                'lending_symbols': ["ZRX", "ZEC", "XRP", "XMR", "USDT", "USD", "SAN", "OMG", "NEO", "LTC", "LEO", "JPY", "IOTA", "GBP", "EUR", "ETP", "ETH", "ETC", "EOS", "EDO", "DASH", "BTG", "BTC", "BCV", "BCH"],
                 'orderTypes': {
                     'limit': 'exchange limit',
                     'market': 'exchange market',
@@ -432,33 +433,20 @@ module.exports = class bitfinex extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostSummary (params);
-        //
-        //     {
-        //         time: '2019-02-20T15:50:19.152000Z',
-        //         trade_vol_30d: [
-        //             {
-        //                 curr: 'Total (USD)',
-        //                 vol: 0,
-        //                 vol_maker: 0,
-        //                 vol_BFX: 0,
-        //                 vol_BFX_maker: 0,
-        //                 vol_ETHFX: 0,
-        //                 vol_ETHFX_maker: 0
-        //             }
-        //         ],
-        //         fees_funding_30d: {},
-        //         fees_funding_total_30d: 0,
-        //         fees_trading_30d: {},
-        //         fees_trading_total_30d: 0,
-        //         maker_fee: 0.001,
-        //         taker_fee: 0.002
-        //     }
-        //
+
         return {
             'info': response,
             'maker': this.safeFloat (response, 'maker_fee'),
             'taker': this.safeFloat (response, 'taker_fee'),
         };
+    }
+
+    async fetchLendingSymbols(){
+        let symbols = [];
+        this.lending_symbols.forEach(symbol => {
+            symbols.push(this.commonCurrencyCode(symbol));
+        });
+        return symbols;
     }
 
     async fetchMarkets (params = {}) {
