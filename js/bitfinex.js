@@ -399,7 +399,6 @@ module.exports = class bitfinex extends Exchange {
                     'ZRX': 'zrx',
                     'XTZ': 'tezos',
                 },
-                'lending_symbols': ["ZRX", "ZEC", "XRP", "XMR", "USDT", "USD", "SAN", "OMG", "NEO", "LTC", "LEO", "JPY", "IOTA", "GBP", "EUR", "ETP", "ETH", "ETC", "EOS", "EDO", "DASH", "BTG", "BTC", "BCV", "BCH"],
                 'orderTypes': {
                     'limit': 'exchange limit',
                     'market': 'exchange market',
@@ -443,7 +442,8 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchLendingSymbols(){
         let symbols = [];
-        this.lending_symbols.forEach(symbol => {
+        let lending_symbols = ["ZRX", "ZEC", "XRP", "XMR", "USDT", "USD", "SAN", "OMG", "NEO", "LTC", "LEO", "JPY", "IOTA", "GBP", "EUR", "ETP", "ETH", "ETC", "EOS", "EDO", "DASH", "BTG", "BTC", "BCV", "BCH"];
+        lending_symbols.forEach(symbol => {
             symbols.push(this.commonCurrencyCode(symbol));
         });
         return symbols;
