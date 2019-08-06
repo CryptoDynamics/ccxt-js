@@ -387,7 +387,7 @@ module.exports = class poloniex extends Exchange {
     async fetchLoanBooks(count = 1){
         let symbols = await this.fetchLendingSymbols();
         let books = {};
-        symbols.forEach(symbol => {
+        symbols.forEach(async (symbol) => {
             books[symbol] = await this.fetchLoanBook(symbol, count);
         });
         return books;
