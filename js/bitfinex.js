@@ -303,7 +303,6 @@ module.exports = class bitfinex extends Exchange {
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
-                'USD': 'USDT',
                 'UTN': 'UTNP',
                 'XCH': 'XCHF',
             },
@@ -533,11 +532,6 @@ module.exports = class bitfinex extends Exchange {
                 const currencyId = this.safeString (balance, 'currency');
                 let code = currencyId.toUpperCase ();
                 code = this.commonCurrencyCode (code);
-                // bitfinex had BCH previously, now it's BAB, but the old
-                // BCH symbol is kept for backward-compatibility
-                // we need a workaround here so that the old BCH balance
-                // would not override the new BAB balance (BAB is unified to BCH)
-                // https://github.com/ccxt/ccxt/issues/4989
                 if (!(code in result)) {
                     const account = this.account ();
                     account['free'] = this.safeFloat (balance, 'available');
@@ -623,7 +617,8 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchLoanBook (symbol, count = 1) {
-        const response = await this.publicGetLendbookCurrency (this.extend ({ 'currency': symbol,
+        const response = await this.publicGetLendbookCurrency (this.extend ({
+            'currency': this.marketId(symbol),
             'limit_bids': 0,
             'limit_asks': count }));
         const offers = [];
@@ -633,14 +628,24 @@ module.exports = class bitfinex extends Exchange {
         });
         return offers;
     }
+    async fetchLoanBooks(count = 1){
+        let symbols = await this.fetchLendingSymbols();
+        let books = {};
+        symbols.forEach(symbol =>{
+            books[symbol] = await this.fetchLoanBook(symbol, count);
+        });
+        return books;
+    }
 
     async fetchOpenLoans (symbol) {
         const response = await this.privatePostOffers ();
         const offers = [];
+        symbol = this.marketId(symbol);
         response.forEach ((offer) => {
             if (offer['currency'] === symbol && !offer['is_cancelled']) {
-                offers.push ({ 'order_id': offer['id'],
-                    'symbol': offer['currency'],
+                offers.push ({
+                    'order_id': offer['id'],
+                    'symbol': this.commonCurrencyCode(offer['currency']),
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
                     'duration': parseFloat (offer['period']),
@@ -654,7 +659,8 @@ module.exports = class bitfinex extends Exchange {
         const response = await this.privatePostCredits ();
         const offers = [];
         response.forEach ((offer) => {
-            offers.push ({ 'order_id': offer['id'],
+            offers.push ({
+                'order_id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']) / 365,
                 'amount': parseFloat (offer['amount']),
@@ -672,7 +678,8 @@ module.exports = class bitfinex extends Exchange {
                 const per = 2;
                 const earn = parseFloat (offer['rate']) / 365 * parseFloat (offer['period']) * parseFloat (offer['executed_amount']) / 100;
                 const fee = earn * per / 100;
-                offers.push ({ 'order_id': offer['id'],
+                offers.push ({
+                    'order_id': offer['id'],
                     'symbol': this.commonCurrencyCode(offer['currency']),
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
@@ -686,7 +693,8 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
-        const response = await this.privatePostOfferNew (this.extend ({ 'currency': symbol,
+        const response = await this.privatePostOfferNew (this.extend ({
+            'currency': this.marketId(symbol),
             'amount': amount.toString (),
             'period': parseInt (duration),
             'rate': rate.toString (),

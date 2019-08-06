@@ -369,7 +369,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchLoanBook (symbol, count = 1) {
-        const response = await this.publicGetReturnLoanOrders (this.extend ({ 'currency': symbol }));
+        const response = await this.publicGetReturnLoanOrders (this.extend ({ 'currency': this.marketId(symbol) }));
         const offers = [];
         if (!('offers' in response)) return offers;
         response['offers'].forEach ((offer) => {
@@ -384,8 +384,17 @@ module.exports = class poloniex extends Exchange {
         return offers;
     }
 
+    async fetchLoanBooks(count = 1){
+        let symbols = await this.fetchLendingSymbols();
+        let books = {};
+        symbols.forEach(symbol => {
+            books[symbol] = await this.fetchLoanBook(symbol, count);
+        });
+        return books;
+    }
+
     async fetchOpenLoans (symbol) {
-        const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': symbol}));
+        const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': this.marketId(symbol)}));
 
         let offers = [];
         if (!(symbol in response)) {
@@ -394,7 +403,7 @@ module.exports = class poloniex extends Exchange {
         response[symbol].forEach (offer => {
             offers.push({
                 'order_id': offer['id'],
-                'symbol': symbol,
+                'symbol': this.commonCurrencyCode(symbol),
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
@@ -410,7 +419,7 @@ module.exports = class poloniex extends Exchange {
         response['provided'].forEach ((offer) => {
             offers.push ({
                 'order_id': offer['id'],
-                'symbol': offer['currency'],
+                'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
@@ -429,7 +438,7 @@ module.exports = class poloniex extends Exchange {
             const fee = earn * per / 100;
             offers.push ({
                 'order_id': offer['id'],
-                'symbol': offer['currency'],
+                'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['duration']),
@@ -443,7 +452,7 @@ module.exports = class poloniex extends Exchange {
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         const response = await this.privatePostCreateLoanOffer (this.extend ({
-            'currency': symbol,
+            'currency': this.marketId(symbol),
             'amount': amount,
             'duration': duration,
             'autoRenew': renew,
@@ -464,7 +473,7 @@ module.exports = class poloniex extends Exchange {
 
     async transferBalance (symbol, amount, from, to) {
         const response = await this.privatePostTransferBalance (this.extend ( {
-            'currency': symbol,
+            'currency': this.marketId(symbol),
             'amount': amount,
             'fromAccount': from,
             'toAccount': to } ));
