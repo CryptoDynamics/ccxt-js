@@ -442,7 +442,7 @@ module.exports = class bitfinex extends Exchange {
     async fetchLendingSymbols(){
         await this.loadMarkets ();
         let symbols = [];
-        let lending_symbols = ["ZRX", "ZEC", "XRP", "XMR", "USDT", "USD", "SAN", "OMG", "NEO", "LTC", "LEO", "JPY", "IOTA", "GBP", "EUR", "ETP", "ETH", "ETC", "EOS", "EDO", "DASH", "BTG", "BTC", "BCV", "BCH"];
+        let lending_symbols = ['ZRX', 'ZEC', 'XRP', 'XMR', 'USDT', 'USD', 'SAN', 'OMG', 'NEO', 'LTC', 'LEO', 'JPY', 'IOTA', 'GBP', 'EUR', 'ETP', 'ETH', 'ETC', 'EOS', 'EDO', 'DASH', 'BTG', 'BTC', 'BCV', 'BCH'];
         lending_symbols.forEach(symbol => {
             symbols.push(this.commonCurrencyCode(symbol));
         });
@@ -652,7 +652,8 @@ module.exports = class bitfinex extends Exchange {
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
                     'duration': parseFloat (offer['period']),
-                    'date': parseInt (offer['timestamp']) });
+                    'date': parseInt (offer['timestamp'])
+                });
             }
         });
         return offers;

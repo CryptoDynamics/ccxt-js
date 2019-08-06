@@ -273,7 +273,7 @@ module.exports = class poloniex extends Exchange {
     async fetchLendingSymbols(){
         await this.loadMarkets ();
         let symbols = [];
-        let lending_symbols = ["BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "USDT", "XMR", "XRP", "ETH", "FCT", "ETC", "EOS", "USDC", "BCHABC", "BCHSV", "ATOM"];
+        let lending_symbols = ['BTC', 'BTS', 'CLAM', 'DOGE', 'DASH', 'LTC', 'MAID', 'STR', 'USDT', 'XMR', 'XRP', 'ETH', 'FCT', 'ETC', 'EOS', 'USDC', 'BCHABC', 'BCHSV', 'ATOM'];
         lending_symbols.forEach(symbol => {
             symbols.push(this.commonCurrencyCode(symbol));
         });
