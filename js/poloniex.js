@@ -575,8 +575,7 @@ module.exports = class poloniex extends Exchange {
             'percentage': relativeChange * 100,
             'average': average,
             'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
-            'info': ticker,
+            'quoteVolume': this.safeFloat (ticker, 'baseVolume')
         };
     }
 
