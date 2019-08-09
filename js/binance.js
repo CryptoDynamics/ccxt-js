@@ -371,7 +371,6 @@ module.exports = class binance extends Exchange {
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'info': ticker,
         };
     }
 
