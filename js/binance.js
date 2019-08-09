@@ -235,7 +235,6 @@ module.exports = class binance extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -255,10 +254,6 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filters) {
                 const filter = filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeFloat (filter, 'minPrice'),
                     'max': undefined,
@@ -437,51 +432,7 @@ module.exports = class binance extends Exchange {
         if ('isDustTrade' in trade) {
             return this.parseDustTrade (trade, market);
         }
-        //
-        // aggregate trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-        //
-        //     {
-        //         "a": 26129,         // Aggregate tradeId
-        //         "p": "0.01633102",  // Price
-        //         "q": "4.70443515",  // Quantity
-        //         "f": 27781,         // First tradeId
-        //         "l": 27781,         // Last tradeId
-        //         "T": 1498793709153, // Timestamp
-        //         "m": true,          // Was the buyer the maker?
-        //         "M": true           // Was the trade the best price match?
-        //     }
-        //
-        // recent public trades and old public trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
-        //
-        //     {
-        //         "id": 28457,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "time": 1499865549590,
-        //         "isBuyerMaker": true,
-        //         "isBestMatch": true
-        //     }
-        //
-        // private trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
-        //
-        //     {
-        //         "symbol": "BNBBTC",
-        //         "id": 28457,
-        //         "orderId": 100234,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "commission": "10.10000000",
-        //         "commissionAsset": "BNB",
-        //         "time": 1499865549590,
-        //         "isBuyer": true,
-        //         "isMaker": false,
-        //         "isBestMatch": true
-        //     }
-        //
+
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeFloat2 (trade, 'p', 'price');
         const amount = this.safeFloat2 (trade, 'q', 'qty');
@@ -537,10 +488,6 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit': 500,     // default = 500, maximum = 1000
         };
         if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
             if (since !== undefined) {
@@ -551,46 +498,8 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
-        //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
         const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method] (this.extend (request, params));
-        //
-        // aggregate trades
-        //
-        //     [
-        //         {
-        //             "a": 26129,         // Aggregate tradeId
-        //             "p": "0.01633102",  // Price
-        //             "q": "4.70443515",  // Quantity
-        //             "f": 27781,         // First tradeId
-        //             "l": 27781,         // Last tradeId
-        //             "T": 1498793709153, // Timestamp
-        //             "m": true,          // Was the buyer the maker?
-        //             "M": true           // Was the trade the best price match?
-        //         }
-        //     ]
-        //
-        // recent public trades and historical public trades
-        //
-        //     [
-        //         {
-        //             "id": 28457,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "time": 1499865549590,
-        //             "isBuyerMaker": true,
-        //             "isBestMatch": true
-        //         }
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -681,7 +590,6 @@ module.exports = class binance extends Exchange {
             }
         }
         return {
-            'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -704,7 +612,6 @@ module.exports = class binance extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // the next 5 lines are added to support for testing orders
         let method = 'privatePostOrder';
         const test = this.safeValue (params, 'test', false);
         if (test) {
@@ -792,28 +699,7 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetAllOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "LTCBTC",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "0.0",
-        //             "cummulativeQuoteQty": "0.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": 1499827319559,
-        //             "updateTime": 1499827319559,
-        //             "isWorking": true
-        //         }
-        //     ]
-        //
+
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -848,7 +734,6 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
             'orderId': parseInt (id),
-            // 'origClientOrderId': id,
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
@@ -867,48 +752,15 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetMyTrades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "BNBBTC",
-        //             "id": 28457,
-        //             "orderId": 100234,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "commission": "10.10000000",
-        //             "commissionAsset": "BNB",
-        //             "time": 1499865549590,
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true
-        //         }
-        //     ]
-        //
+
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
-        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
-        // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
-        //
+
         await this.loadMarkets ();
         const response = await this.wapiGetUserAssetDribbletLog (params);
-        // { success:    true,
-        //   results: { total:    1,
-        //               rows: [ {     transfered_total: "1.06468458",
-        //                         service_charge_total: "0.02172826",
-        //                                      tran_id: 2701371634,
-        //                                         logs: [ {              tranId:  2701371634,
-        //                                                   serviceChargeAmount: "0.00012819",
-        //                                                                   uid: "35103861",
-        //                                                                amount: "0.8012",
-        //                                                           operateTime: "2018-10-07 17:56:07",
-        //                                                      transferedAmount: "0.00628141",
-        //                                                             fromAsset: "ADA"                  } ],
-        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
+
         const results = this.safeValue (response, 'results', {});
         const rows = this.safeValue (results, 'rows', []);
         const data = [];
@@ -924,13 +776,6 @@ module.exports = class binance extends Exchange {
     }
 
     parseDustTrade (trade, market = undefined) {
-        // {              tranId:  2701371634,
-        //   serviceChargeAmount: "0.00012819",
-        //                   uid: "35103861",
-        //                amount: "0.8012",
-        //           operateTime: "2018-10-07 17:56:07",
-        //      transferedAmount: "0.00628141",
-        //             fromAsset: "ADA"                  },
         const orderId = this.safeString (trade, 'tranId');
         const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
         const tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
@@ -940,13 +785,7 @@ module.exports = class binance extends Exchange {
         if (applicantSymbol in this.markets) {
             tradedCurrencyIsQuote = true;
         }
-        //
-        // Warning
-        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
-        // is much more illustrative and therefore preferable.
-        //
+
         const fee = {
             'currency': earnedCurrency,
             'cost': this.safeFloat (trade, 'serviceChargeAmount'),
@@ -988,7 +827,6 @@ module.exports = class binance extends Exchange {
             'price': price,
             'cost': cost,
             'fee': fee,
-            'info': trade,
         };
     }
 
@@ -1004,16 +842,7 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.wapiGetDepositHistory (this.extend (request, params));
-        //
-        //     {     success:    true,
-        //       depositList: [ { insertTime:  1517425007000,
-        //                            amount:  0.3,
-        //                           address: "0x0123456789abcdef",
-        //                        addressTag: "",
-        //                              txId: "0x0123456789abcdef",
-        //                             asset: "ETH",
-        //                            status:  1                                                                    } ] }
-        //
+
         return this.parseTransactions (response['depositList'], currency, since, limit);
     }
 
@@ -1029,27 +858,7 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
-        //
-        //     { withdrawList: [ {      amount:  14,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1514489710000,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ETH",
-        //                           applyTime:  1514488724000,
-        //                              status:  6                       },
-        //                       {      amount:  7600,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1515323226000,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ICN",
-        //                           applyTime:  1515322539000,
-        //                              status:  6                       }  ],
-        //            success:    true                                         }
-        //
+
         return this.parseTransactions (response['withdrawList'], currency, since, limit);
     }
 
@@ -1076,28 +885,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //
-        // fetchDeposits
-        //      { insertTime:  1517425007000,
-        //            amount:  0.3,
-        //           address: "0x0123456789abcdef",
-        //        addressTag: "",
-        //              txId: "0x0123456789abcdef",
-        //             asset: "ETH",
-        //            status:  1                                                                    }
-        //
-        // fetchWithdrawals
-        //
-        //       {      amount:  14,
-        //             address: "0x0123456789abcdef...",
-        //         successTime:  1514489710000,
-        //          addressTag: "",
-        //                txId: "0x0123456789abcdef...",
-        //                  id: "0123456789abcdef...",
-        //               asset: "ETH",
-        //           applyTime:  1514488724000,
-        //              status:  6                       }
-        //
+
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
@@ -1133,7 +921,6 @@ module.exports = class binance extends Exchange {
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeFloat (transaction, 'amount');
         return {
-            'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -1167,7 +954,6 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'address': this.checkAddress (address),
             'tag': tag,
-            'info': response,
         };
     }
 
@@ -1184,7 +970,6 @@ module.exports = class binance extends Exchange {
         return {
             'withdraw': withdrawFees,
             'deposit': {},
-            'info': response,
         };
     }
 
@@ -1204,7 +989,6 @@ module.exports = class binance extends Exchange {
         }
         const response = await this.wapiPostWithdraw (this.extend (request, params));
         return {
-            'info': response,
             'id': this.safeString (response, 'id'),
         };
     }
@@ -1246,9 +1030,6 @@ module.exports = class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            // userDataStream endpoints are public, but POST, PUT, DELETE
-            // therefore they don't accept URL query arguments
-            // https://github.com/ccxt/ccxt/issues/5224
             if (!userDataStream) {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
@@ -1262,9 +1043,7 @@ module.exports = class binance extends Exchange {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
-        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
-        // will switch "code" checks eventually, when we know all of them
+
         if (code >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
@@ -1278,8 +1057,7 @@ module.exports = class binance extends Exchange {
         }
         if (body.length > 0) {
             if (body[0] === '{') {
-                // check success value for wapi endpoints
-                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+
                 const success = this.safeValue (response, 'success', true);
                 if (!success) {
                     const message = this.safeString (response, 'msg');
@@ -1288,7 +1066,7 @@ module.exports = class binance extends Exchange {
                         try {
                             parsedMessage = JSON.parse (message);
                         } catch (e) {
-                            // do nothing
+
                             parsedMessage = undefined;
                         }
                         if (parsedMessage !== undefined) {
@@ -1302,13 +1080,11 @@ module.exports = class binance extends Exchange {
                     const ExceptionClass = exceptions[message];
                     throw new ExceptionClass (this.id + ' ' + message);
                 }
-                // checks against error codes
+=
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
                     if (error in exceptions) {
-                        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        // despite that their message is very confusing, it is raised by Binance
-                        // on a temporary ban (the API key is valid, but disabled for a while)
+
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                         }
@@ -1326,7 +1102,7 @@ module.exports = class binance extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+
         if ((api === 'private') || (api === 'wapi')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
