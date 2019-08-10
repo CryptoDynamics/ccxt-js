@@ -619,7 +619,6 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchLoanBook (symbol, count = 1) {
         await this.loadMarkets ();
-        // console.log(symbol, typeof symbol, this.currencyId(symbol));
         const response = await this.publicGetLendbookCurrency (this.extend ({
             'currency': this.currencyId(symbol),
             'limit_bids': 0,

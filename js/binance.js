@@ -1080,7 +1080,6 @@ module.exports = class binance extends Exchange {
                     const ExceptionClass = exceptions[message];
                     throw new ExceptionClass (this.id + ' ' + message);
                 }
-=
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
                     if (error in exceptions) {
