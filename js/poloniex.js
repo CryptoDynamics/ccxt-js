@@ -325,7 +325,6 @@ module.exports = class poloniex extends Exchange {
         });
 
         active_loans.forEach(loan => {
-            loan.symbol = this.commonCurrencyCode(loan.symbol);
             if (loan.symbol in on_orders['lending']){
                 on_orders['lending'][loan.symbol] += loan.amount;
             }else{
@@ -334,7 +333,6 @@ module.exports = class poloniex extends Exchange {
         });
 
         open_loans.forEach(loan => {
-            loan.symbol = this.commonCurrencyCode(loan.symbol);
             if (loan.symbol in on_orders['lending']){
                 on_orders['lending'][loan.symbol] += loan.amount;
             }else{
@@ -353,19 +351,22 @@ module.exports = class poloniex extends Exchange {
                 if (!(symbol in wallets.total)){
                     wallets.total[symbol] = 0;
                 }
-                wallets.total[symbol] += wallets[wallet][symbol].total;
+                wallets.total[symbol] += wallets[wallet][symbol].available;
             });
-            Object.keys (on_orders[wallet]).forEach ( symbol => {
+        });
+
+        Object.keys (on_orders).forEach ( wallet => {
+            Object.keys(on_orders[wallet]).forEach(symbol => {
                 symbol = this.commonCurrencyCode(symbol);
-                if (!(symbol in wallets[wallet])){
+                if (!(symbol in wallets[wallet])) {
                     wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
                 }
                 wallets[wallet][symbol].on_orders = on_orders[wallet][symbol];
                 wallets[wallet][symbol].total += wallets[wallet][symbol].on_orders;
-                if (!(symbol in wallets.total)){
+                if (!(symbol in wallets.total)) {
                     wallets.total[symbol] = 0;
                 }
-                wallets.total[symbol] += wallets[wallet][symbol].total;
+                wallets.total[symbol] += wallets[wallet][symbol].on_orders;
             });
         });
 
@@ -434,7 +435,7 @@ module.exports = class poloniex extends Exchange {
     async fetchActiveLoans () {
         const response = await this.privatePostReturnActiveLoans ();
         const offers = [];
-        response['provided'].forEach ((offer) => {
+        response['provided'].forEach (offer => {
             offers.push ({
                 'order_id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
