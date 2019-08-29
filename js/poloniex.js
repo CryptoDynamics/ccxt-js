@@ -342,31 +342,31 @@ module.exports = class poloniex extends Exchange {
 
         Object.keys (available).forEach ( wallet => {
             Object.keys (available[wallet]).forEach ( symbol => {
-                symbol = this.commonCurrencyCode(symbol);
-                if (!(symbol in wallets[wallet])){
-                    wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
+                let symbolCode = this.commonCurrencyCode(symbol);
+                if (!(symbolCode in wallets[wallet])){
+                    wallets[wallet][symbolCode] = {available: 0, on_orders: 0, total: 0};
                 }
-                wallets[wallet][symbol].available = parseFloat(available[wallet][symbol]);
-                wallets[wallet][symbol].total += parseFloat(wallets[wallet][symbol].available);
-                if (!(symbol in wallets.total)){
-                    wallets.total[symbol] = 0;
+                wallets[wallet][symbolCode].available = parseFloat(available[wallet][symbol]);
+                wallets[wallet][symbolCode].total += parseFloat(wallets[wallet][symbolCode].available);
+                if (!(symbolCode in wallets.total)){
+                    wallets.total[symbolCode] = 0;
                 }
-                wallets.total[symbol] += wallets[wallet][symbol].available;
+                wallets.total[symbolCode] += wallets[wallet][symbolCode].available;
             });
         });
 
         Object.keys (on_orders).forEach ( wallet => {
             Object.keys(on_orders[wallet]).forEach(symbol => {
-                symbol = this.commonCurrencyCode(symbol);
-                if (!(symbol in wallets[wallet])) {
-                    wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
+                let symbolCode = this.commonCurrencyCode(symbol);
+                if (!(symbolCode in wallets[wallet])) {
+                    wallets[wallet][symbolCode] = {available: 0, on_orders: 0, total: 0};
                 }
-                wallets[wallet][symbol].on_orders = on_orders[wallet][symbol];
-                wallets[wallet][symbol].total += wallets[wallet][symbol].on_orders;
-                if (!(symbol in wallets.total)) {
-                    wallets.total[symbol] = 0;
+                wallets[wallet][symbolCode].on_orders = on_orders[wallet][symbol];
+                wallets[wallet][symbolCode].total += wallets[wallet][symbolCode].on_orders;
+                if (!(symbolCode in wallets.total)) {
+                    wallets.total[symbolCode] = 0;
                 }
-                wallets.total[symbol] += wallets[wallet][symbol].on_orders;
+                wallets.total[symbolCode] += wallets[wallet][symbolCode].on_orders;
             });
         });
 
