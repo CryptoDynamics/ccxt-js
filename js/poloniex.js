@@ -349,7 +349,7 @@ module.exports = class poloniex extends Exchange {
                     wallets[wallet][symbol] = {available: 0, on_orders: 0, total: 0};
                 }
                 wallets[wallet][symbol].available = parseFloat(available[wallet][symbol]);
-                wallets[wallet][symbol].total += wallets[wallet][symbol].available;
+                wallets[wallet][symbol].total += parseFloat(wallets[wallet][symbol].available);
                 if (!(symbol in wallets.total)){
                     wallets.total[symbol] = 0;
                 }

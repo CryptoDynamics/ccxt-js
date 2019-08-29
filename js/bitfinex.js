@@ -555,35 +555,35 @@ module.exports = class bitfinex extends Exchange {
                 switch (balance.type) {
                     case 'exchange':
                         wallets.exchange[currency] = {};
-                        wallets.exchange[currency]['available'] = balance.available;
-                        wallets.exchange[currency]['on_orders'] = balance.amount - balance.available;
-                        wallets.exchange[currency]['total'] = balance.amount;
+                        wallets.exchange[currency]['available'] = parseFloat(balance.available);
+                        wallets.exchange[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
+                        wallets.exchange[currency]['total'] = parseFloat(balance.amount);
                         if (wallets.total[currency] === undefined) {
-                            wallets.total[currency] = balance.amount;
+                            wallets.total[currency] = parseFloat(balance.amount);
                         } else {
-                            wallets.total[currency] += balance.amount;
+                            wallets.total[currency] += parseFloat(balance.amount);
                         }
                         break;
                     case 'trading':
                         wallets.margin[currency] = {};
-                        wallets.margin[currency]['available'] = balance.available;
-                        wallets.margin[currency]['on_orders'] = balance.amount - balance.available;
-                        wallets.margin[currency]['total'] = balance.amount;
+                        wallets.margin[currency]['available'] = parseFloat(balance.available);
+                        wallets.margin[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
+                        wallets.margin[currency]['total'] = parseFloat(balance.amount);
                         if (wallets.total[currency] === undefined) {
-                            wallets.total[currency] = balance.amount;
+                            wallets.total[currency] = parseFloat(balance.amount);
                         } else {
-                            wallets.total[currency] += balance.amount;
+                            wallets.total[currency] += parseFloat(balance.amount);
                         }
                         break;
                     case 'deposit':
                         wallets.lending[currency] = {};
-                        wallets.lending[currency]['available'] = balance.available;
-                        wallets.lending[currency]['on_orders'] = balance.amount - balance.available;
-                        wallets.lending[currency]['total'] = balance.amount;
+                        wallets.lending[currency]['available'] = parseFloat(balance.available);
+                        wallets.lending[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
+                        wallets.lending[currency]['total'] = parseFloat(balance.amount);
                         if (wallets.total[currency] === undefined) {
-                            wallets.total[currency] = balance.amount;
+                            wallets.total[currency] = parseFloat(balance.amount);
                         } else {
-                            wallets.total[currency] += balance.amount;
+                            wallets.total[currency] += parseFloat(balance.amount);
                         }
                         break;
                 }
