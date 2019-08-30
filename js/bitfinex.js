@@ -629,7 +629,7 @@ module.exports = class bitfinex extends Exchange {
         response.forEach ((offer) => {
             if (offer['currency'] === symbol && !offer['is_cancelled']) {
                 offers.push ({
-                    'order_id': offer['id'],
+                    'id': offer['id'],
                     'symbol': this.commonCurrencyCode(offer['currency']),
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),
@@ -646,7 +646,7 @@ module.exports = class bitfinex extends Exchange {
         const offers = [];
         response.forEach ((offer) => {
             offers.push ({
-                'order_id': offer['id'],
+                'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']) / 365,
                 'amount': parseFloat (offer['amount']),
@@ -665,7 +665,7 @@ module.exports = class bitfinex extends Exchange {
                 const earn = parseFloat (offer['rate']) / 365 * parseFloat (offer['period']) * parseFloat (offer['executed_amount']) / 100;
                 const fee = earn * per / 100;
                 offers.push ({
-                    'order_id': offer['id'],
+                    'id': offer['id'],
                     'symbol': this.commonCurrencyCode(offer['currency']),
                     'rate': parseFloat (offer['rate']) / 365,
                     'amount': parseFloat (offer['original_amount']),

@@ -411,7 +411,7 @@ module.exports = class poloniex extends Exchange {
         }
         response[symbol].forEach (offer => {
             offers.push({
-                'order_id': offer['id'],
+                'id': offer['id'],
                 'symbol': this.commonCurrencyCode(symbol),
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
@@ -427,7 +427,7 @@ module.exports = class poloniex extends Exchange {
         const offers = [];
         response['provided'].forEach (offer => {
             offers.push ({
-                'order_id': offer['id'],
+                'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
@@ -446,7 +446,7 @@ module.exports = class poloniex extends Exchange {
             const earn = parseFloat (offer['earned']);
             const fee = earn * per / 100;
             offers.push ({
-                'order_id': offer['id'],
+                'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': parseFloat (offer['rate']),
                 'amount': parseFloat (offer['amount']),
