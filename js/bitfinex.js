@@ -687,7 +687,14 @@ module.exports = class bitfinex extends Exchange {
             'rate': rate.toString(),
             'direction': 'lend',
             'renew': renew }, params));
-        return { 'order_id': response['id'] };
+        return {
+            id: response['id'],
+            symbol: symbol,
+            amount: amount,
+            rate: rate,
+            duration: duration,
+            renew: renew
+        };
     }
 
     async cancelLoanOrder (id, params = {}) {

@@ -468,17 +468,19 @@ module.exports = class poloniex extends Exchange {
             'autoRenew': renew,
             'lendingRate': rate,
         }, params));
-        return await this.parseLoanOrder (response);
+        if (response.success)
+            return {
+                id: response.orderID,
+                symbol: symbol,
+                amount: amount,
+                rate: rate,
+                duration: duration,
+                renew: renew
+            };
     }
 
     async cancelLoanOrder (id, params = {}) {
         return await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': id}, params));
-    }
-
-    async parseLoanOrder (data) {
-        if (data['success']) {
-            return { 'order_id': data['orderID'] };
-        }
     }
 
     async transferBalance (symbol, amount, from, to) {
