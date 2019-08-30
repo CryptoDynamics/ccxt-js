@@ -472,10 +472,10 @@ module.exports = class poloniex extends Exchange {
             return {
                 id: response.orderID,
                 symbol: symbol,
-                amount: amount,
-                rate: rate,
-                duration: duration,
-                renew: renew
+                amount: parseFloat(amount).toFixed(8),
+                rate: parseFloat(rate).toFixed(8),
+                duration: Number(duration),
+                renew: Number(renew)
             };
     }
 
