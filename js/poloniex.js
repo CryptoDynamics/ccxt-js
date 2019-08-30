@@ -476,7 +476,7 @@ module.exports = class poloniex extends Exchange {
                 rate: Number(rate),
                 duration: Number(duration),
                 renew: Number(renew),
-                date: Date.now() / 1000
+                date: Math.round(Date.now() / 1000)
             };
     }
 
