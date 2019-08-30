@@ -605,18 +605,6 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchLoanBalance (params = {}) {
-        const response = await this.privatePostBalances (this.extend ());
-        const balances = {};
-        response.forEach (wallet => {
-            if (wallet['type'] === 'deposit' && parseFloat (wallet['available']) !== 0) {
-                let currency = this.commonCurrencyCode(wallet['currency'].toUpperCase());
-                balances[currency] = parseFloat (wallet['available']);
-            }
-        });
-        return balances;
-    }
-
     async fetchLoanBook (symbol, count = 1) {
         await this.loadMarkets ();
         const response = await this.publicGetLendbookCurrency (this.extend ({
@@ -626,20 +614,11 @@ module.exports = class bitfinex extends Exchange {
         const offers = [];
         response.asks.forEach ((offer) => {
             offers.push ({
-                'rate': parseFloat (offer['rate']),
+                'rate': parseFloat (offer['rate']) / 365,
                 'amount': parseFloat (offer['amount'])
             });
         });
         return offers;
-    }
-    async fetchLoanBooks(symbols = undefined, count = 1){
-        if (symbols === undefined)
-            symbols = await this.fetchLendingSymbols();
-        let books = {};
-        for (let i = 0; i < symbols.length; i++){
-            books[symbols[i]] = await this.fetchLoanBook(symbols[i], count);
-        }
-        return books;
     }
 
     async fetchOpenLoans (symbol) {
@@ -705,7 +684,7 @@ module.exports = class bitfinex extends Exchange {
             'currency': this.currencyId(symbol),
             'amount': amount.toString (),
             'period': parseInt (duration),
-            'rate': rate.toString (),
+            'rate': rate.toString(),
             'direction': 'lend',
             'renew': renew }, params));
         return { 'order_id': response['id'] };

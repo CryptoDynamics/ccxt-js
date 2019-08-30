@@ -373,16 +373,6 @@ module.exports = class poloniex extends Exchange {
         return wallets;
     }
 
-    async fetchLoanBalance () {
-        const response = await this.privatePostReturnAvailableAccountBalances (this.extend ({ 'account': 'lending' }));
-        const balances = {};
-        if (!('lending' in response)) return balances;
-        Object.keys (response.lending).forEach ((symbol) => {
-            balances[symbol] = parseFloat (response['lending'][symbol]);
-        });
-        return balances;
-    }
-
     async fetchLoanBook (symbol, count = 1) {
         await this.loadMarkets ();
         const response = await this.publicGetReturnLoanOrders (this.extend ({
