@@ -327,6 +327,30 @@ module.exports = class binance extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchWalletBalance(){
+        let wallets = {'exchange': {}, 'margin': {}, 'lending': {}};
+        const response = await this.privateGetAccount();
+        let balances = response['balances'];
+
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = balance['asset'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+            wallets[code] = {
+                available: balance.free,
+                on_orders: balance.locked,
+                total: balance.free + balance.locked
+            };
+        }
+
+        return wallets;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);

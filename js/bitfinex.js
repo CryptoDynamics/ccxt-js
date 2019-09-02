@@ -548,7 +548,7 @@ module.exports = class bitfinex extends Exchange {
     async fetchWalletBalance () {
         const response = await this.privatePostBalances();
 
-        let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}, 'total': {}};
+        let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}};
         response.forEach(balance => {
             if (parseFloat (balance.amount) !== 0) {
                 let currency = this.commonCurrencyCode(balance.currency.toUpperCase());
@@ -558,33 +558,18 @@ module.exports = class bitfinex extends Exchange {
                         wallets.exchange[currency]['available'] = parseFloat(balance.available);
                         wallets.exchange[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
                         wallets.exchange[currency]['total'] = parseFloat(balance.amount);
-                        if (wallets.total[currency] === undefined) {
-                            wallets.total[currency] = parseFloat(balance.amount);
-                        } else {
-                            wallets.total[currency] += parseFloat(balance.amount);
-                        }
                         break;
                     case 'trading':
                         wallets.margin[currency] = {};
                         wallets.margin[currency]['available'] = parseFloat(balance.available);
                         wallets.margin[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
                         wallets.margin[currency]['total'] = parseFloat(balance.amount);
-                        if (wallets.total[currency] === undefined) {
-                            wallets.total[currency] = parseFloat(balance.amount);
-                        } else {
-                            wallets.total[currency] += parseFloat(balance.amount);
-                        }
                         break;
                     case 'deposit':
                         wallets.lending[currency] = {};
                         wallets.lending[currency]['available'] = parseFloat(balance.available);
                         wallets.lending[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
                         wallets.lending[currency]['total'] = parseFloat(balance.amount);
-                        if (wallets.total[currency] === undefined) {
-                            wallets.total[currency] = parseFloat(balance.amount);
-                        } else {
-                            wallets.total[currency] += parseFloat(balance.amount);
-                        }
                         break;
                 }
             }
