@@ -669,7 +669,7 @@ module.exports = class bitfinex extends Exchange {
             'currency': this.currencyId(symbol),
             'amount': amount.toString (),
             'period': parseInt (duration),
-            'rate': parseFloat(rate),
+            'rate': Number(rate),
             'direction': 'lend',
             'renew': renew }, params));
         return {

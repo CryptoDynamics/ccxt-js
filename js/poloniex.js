@@ -315,12 +315,20 @@ module.exports = class poloniex extends Exchange {
         let active_loans = await this.fetchActiveLoans();
 
         open_orders.forEach(order => {
-            order.symbol = (order.side === 'sell')? order.symbol.split('/')[0]: order.symbol.split('/')[1];
-            if (order.symbol in on_orders['exchange']){
-                on_orders['exchange'][order.symbol] += order.amount;
-            }else{
-                on_orders['exchange'][order.symbol] = order.amount;
+            let symbol = '';
+            let amount = 0;
+            if (order.side === 'sell'){
+                symbol = order.symbol.split('/')[0];
+                amount = order.amount;
+            }else {
+                symbol = order.symbol.split('/')[1];
+                amount = order.amount * order.price;
             }
+
+            if (symbol in on_orders['exchange'])
+                on_orders['exchange'][symbol] += amount;
+            else
+                on_orders['exchange'][symbol] = amount;
         });
 
         active_loans.forEach(loan => {
@@ -917,7 +925,7 @@ module.exports = class poloniex extends Exchange {
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
                         'status': 'closed',
-                        'cost': undefined,
+                        'cost': order['amount'] * order['price'];,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
