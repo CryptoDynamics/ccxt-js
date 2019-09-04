@@ -340,8 +340,8 @@ module.exports = class binance extends Exchange {
             if (total === 0) return;
 
             wallets.exchange[currencyId] = {
-                available: balance.free,
-                on_orders: balance.locked,
+                available: Number(balance.free),
+                on_orders: Number(balance.locked),
                 total: total
             };
         });
