@@ -926,7 +926,7 @@ module.exports = class poloniex extends Exchange {
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'];,
+                        'cost': order['amount'] * order['price'],
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
