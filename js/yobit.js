@@ -193,6 +193,11 @@ module.exports = class yobit extends liqui {
         return this.parseBalance (result);
     }
 
+    async fetchWalletBalance ()
+    {
+        return {}
+    }
+
     async createDepositAddress (code, params = {}) {
         const request = {
             'need_new': 1,
