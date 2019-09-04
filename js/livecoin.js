@@ -31,6 +31,7 @@ module.exports = class livecoin extends Exchange {
                 'fetchMyTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+                'loan': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -298,6 +299,12 @@ module.exports = class livecoin extends Exchange {
         return this.parseBalance (result);
     }
 
+
+    async fetchWalletBalance ()
+    {
+        return {}
+    }
+
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetExchangeCommissionCommonInfo (params);
@@ -356,7 +363,7 @@ module.exports = class livecoin extends Exchange {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'info': ticker,
+// дубль с биржи            'info': ticker,
         };
     }
 
@@ -438,7 +445,7 @@ module.exports = class livecoin extends Exchange {
             }
         }
         return {
-            'info': trade,
+// дубль с биржи          'info': trade, 
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
