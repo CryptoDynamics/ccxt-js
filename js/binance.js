@@ -335,16 +335,11 @@ module.exports = class binance extends Exchange {
         let balances = response.balances;
         // return balances;
         balances.forEach(balance => {
-            let currencyId = balance.asset;
+            let currencyId = this.commonCurrencyCode(balance.asset);
             let total = Number(balance.free) + Number(balance.locked);
             if (total === 0) return;
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
-            wallets.exchange[code] = {
+
+            wallets.exchange[currencyId] = {
                 available: balance.free,
                 on_orders: balance.locked,
                 total: total
