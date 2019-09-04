@@ -333,7 +333,7 @@ module.exports = class binance extends Exchange {
         const response = await this.privateGetAccount();
 
         let balances = response.balances;
-        return balances;
+        // return balances;
         balances.forEach(balance => {
             let currencyId = balance.asset;
             let total = Number(balance.free) + Number(balance.locked);
@@ -344,7 +344,7 @@ module.exports = class binance extends Exchange {
             } else {
                 code = this.commonCurrencyCode (currencyId);
             }
-            wallets[code] = {
+            wallets.exchange[code] = {
                 available: balance.free,
                 on_orders: balance.locked,
                 total: total
