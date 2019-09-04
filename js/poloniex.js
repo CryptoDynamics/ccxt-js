@@ -315,7 +315,7 @@ module.exports = class poloniex extends Exchange {
         let active_loans = await this.fetchActiveLoans();
 
         open_orders.forEach(order => {
-            order.symbol = order.symbol.split('/')[0];
+            order.symbol = (order.side === 'sell')? order.symbol.split('/')[0]: order.symbol.split('/')[1];
             if (order.symbol in on_orders['exchange']){
                 on_orders['exchange'][order.symbol] += order.amount;
             }else{
