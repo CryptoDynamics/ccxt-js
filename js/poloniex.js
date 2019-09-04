@@ -40,6 +40,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchWithdrawals': true,
                 'cancelAllOrders': true,
                 'withdraw': true,
+                'loan': true
             },
             'timeframes': {
                 '5m': 300,
