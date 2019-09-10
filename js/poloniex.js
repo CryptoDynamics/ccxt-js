@@ -1173,7 +1173,10 @@ module.exports = class poloniex extends Exchange {
             'orderNumber': id,
         };
         const trades = await this.privatePostReturnOrderTrades (this.extend (request, params));
-        return this.parseTrades (trades);
+        let result = undefined;
+        if (trades[0])
+            result = this.parseTrades (trades);
+        return result
     }
 
     async createDepositAddress (code, params = {}) {
