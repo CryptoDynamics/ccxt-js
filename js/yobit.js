@@ -193,8 +193,7 @@ module.exports = class yobit extends liqui {
         return this.parseBalance (result);
     }
 
-    async fetchWalletBalance ()
-    {
+    async fetchWalletBalance (){
         return {}
     }
 

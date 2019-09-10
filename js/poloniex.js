@@ -926,7 +926,7 @@ module.exports = class poloniex extends Exchange {
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'],
+                        'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
@@ -955,7 +955,8 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
         }, params));
-        const result = this.safeValue (response['result'], id);
+        const result = response['result'][id];
+        console.log(result);
         if (result === undefined) {
             let trades = await this.fetchOrderTrades(id, symbol);
 
