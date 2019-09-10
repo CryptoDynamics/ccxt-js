@@ -955,7 +955,7 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
         }, params));
-        const result = this.safeValue(response['result'], id);
+        const result = response['result'][id];
         console.error('status', result);
         let trades = await this.fetchOrderTrades(id, symbol);
         console.error('trades', trades);
