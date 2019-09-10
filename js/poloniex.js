@@ -955,12 +955,12 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
         }, params));
-        const result = response['result'][id];
-        console.log(result);
-        if (result === undefined) {
-            let trades = await this.fetchOrderTrades(id, symbol);
+        const result = this.safeValue(response['result'][id]);
 
-            if (trades.length){
+        if (result === undefined) {
+            let trades = this.safeValue(await this.fetchOrderTrades(id, symbol));
+
+            if (!trades){
                 let amount = 0;
                 let cost = 0;
                 let filled = 0;
@@ -999,9 +999,10 @@ module.exports = class poloniex extends Exchange {
                     'feeAmount': feeAmount,
                     'feeCost': feeCost,
                 };
+                this.orders[id] = order;
                 return order;
             }else {
-                return [];
+                return this.orders[id].status = 'canceled';
             }
         }else{
             const order = this.parseOrder (result);
