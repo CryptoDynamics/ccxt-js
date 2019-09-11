@@ -956,9 +956,7 @@ module.exports = class poloniex extends Exchange {
             'orderNumber': id,
         }, params));
         const result = response['result'][id];
-        console.error('status', result);
         let trades = await this.fetchOrderTrades(id, symbol);
-        console.error('trades', trades);
         if (result === undefined) {
             if (trades !== undefined){
                 let amount = 0;
@@ -1002,7 +1000,6 @@ module.exports = class poloniex extends Exchange {
                 this.orders[id] = order;
                 return order;
             }else {
-                console.log(this.orders[id]);
                 return {
                     id: id,
                     status: 'canceled'
