@@ -1056,7 +1056,7 @@ module.exports = class poloniex extends Exchange {
                 orders[trade.orderNumber] = {
                     orderNumber: trade.orderNumber,
                     date: trade.date,
-                    currencyPair: marketId,
+                    currencyPair: market.id,
                     status: '',
                     type: trade.type,
                     rate: Number(trade.rate),
