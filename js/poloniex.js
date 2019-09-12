@@ -413,9 +413,9 @@ module.exports = class poloniex extends Exchange {
             offers.push({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(symbol),
-                'rate': parseFloat (offer['rate']),
-                'amount': parseFloat (offer['amount']),
-                'duration': parseFloat (offer['duration']),
+                'rate': Number(offer['rate']),
+                'amount': Number (offer['amount']),
+                'duration': Number (offer['duration']),
                 'date': Date.parse(offer['date']) / 1000
             });
         });
@@ -429,9 +429,9 @@ module.exports = class poloniex extends Exchange {
             offers.push ({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
-                'rate': parseFloat (offer['rate']),
-                'amount': parseFloat (offer['amount']),
-                'duration': parseFloat (offer['duration']),
+                'rate': Number(offer['rate']),
+                'amount': Number(offer['amount']),
+                'duration': Number(offer['duration']),
                 'date': Date.parse (offer['date']) / 1000
             });
         });
@@ -1030,8 +1030,8 @@ module.exports = class poloniex extends Exchange {
 
     async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let marketId = this.market(symbol).id;
-        const trades = await this.privatePostReturnTradeHistory(this.extend({currencyPair: marketId}));
+        let market = this.market(symbol);
+        const trades = await this.privatePostReturnTradeHistory(this.extend({currencyPair: market.id}));
         let orders = {};
         // status: 'Open',
         //     rate: '0.40000000',
@@ -1073,7 +1073,7 @@ module.exports = class poloniex extends Exchange {
         });
         let parseOrders = [];
         Object.values(orders).forEach(order => {
-            parseOrders.push(this.parseOrder(order));
+            parseOrders.push(this.parseOrder(order, market));
         });
 
         return parseOrders
