@@ -1028,9 +1028,53 @@ module.exports = class poloniex extends Exchange {
         return this.filterOrdersByStatus (orders, 'open');
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'closed');
+    async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
+        const trades = this.privatePostReturnTradeHistory(this.extend({currencyPair: symbol}));
+        let orders = {};
+        // status: 'Open',
+        //     rate: '0.40000000',
+        //     amount: '1.00000000',
+        //     currencyPair: 'BTC_ETH',
+        //     date: '2018-10-17 17:04:50',
+        //     total: '0.40000000',
+        //     type: 'buy',
+        //     startingAmount: '1.00000'
+
+        // [ { amount: '3.0',
+        //     date: '2018-10-25 23:03:21',
+        //     rate: '0.0002',
+        //     total: '0.0006',
+        //     tradeID: '251834',
+        //     type: 'buy' } ],
+        //     fee: '0.01000000',
+        //     clientOrderId: '12345'
+        // currencyPair: 'BTC_ETH' }
+        trades.forEach(trade => {
+            if (!(trade.orderNumber in orders))
+                orders[trade.orderNumber] = {
+                    orderNumber: trade.orderNumber,
+                    date: trade.date,
+                    currencyPair: symbol,
+                    status: '',
+                    type: trade.type,
+                    rate: Number(trade.rate),
+                    amount: 0,
+                    total: 0,
+                    startingAmount: 0,
+                    resultingTrades: [],
+                    fee: trade.fee
+                };
+            orders[trade.orderNumber].total += Number(trade.total);
+            orders[trade.orderNumber].amount += Number(trade.amount);
+            orders[trade.orderNumber].startingAmount += Number(trade.amount);
+            orders[trade.orderNumber].resultingTrades.push(trade);
+        });
+        let parseOrders = [];
+        Object.values(orders).forEach(order => {
+            parseOrders.push(this.parseOrder(order));
+        });
+
+        return parseOrders
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
