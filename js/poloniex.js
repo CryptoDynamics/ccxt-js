@@ -1029,7 +1029,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = this.privatePostReturnTradeHistory(this.extend({currencyPair: symbol}));
+        const trades = await this.privatePostReturnTradeHistory(this.extend({currencyPair: symbol}));
         let orders = {};
         // status: 'Open',
         //     rate: '0.40000000',
