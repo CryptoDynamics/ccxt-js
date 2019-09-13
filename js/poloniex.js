@@ -684,39 +684,17 @@ module.exports = class poloniex extends Exchange {
         }
         if (market !== undefined) {
             symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
         }
         const side = this.safeString (trade, 'type');
-        let fee = undefined;
         const price = this.safeFloat (trade, 'rate');
         const total = this.safeFloat (trade, 'total');
         const amount = this.safeFloat (trade, 'amount');
-        let filled = amount;
         let cost = total;
-        let feeCost = 0;
-        let feeAmount = 0;
+        let fee = 0;
         if ('fee' in trade) {
             const rate = this.safeFloat (trade, 'fee');
-            let currency = undefined;
-            if (side === 'buy') {
-                currency = base;
-                feeAmount = this.feeToPrecision(symbol, amount * rate);
-                filled = amount - feeAmount;
-            } else {
-                currency = quote;
-                if (total !== undefined) {
-                    feeCost = this.feeToPrecision(symbol, total * rate);
-                    cost = total - feeCost;
-                }
-            }
-            fee = {
-                'type': undefined,
-                'rate': rate,
-                'cost': feeCost,
-                'amount': feeAmount,
-                'currency': currency,
-            };
+            if (side === 'buy') fee = this.feeToPrecision(symbol, amount * rate);
+            else fee = this.feeToPrecision(symbol, total * rate);
         }
         return {
             'timestamp': timestamp,
@@ -729,9 +707,7 @@ module.exports = class poloniex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'total': total,
-            'filled': filled,
-            'fee': fee,
+            'fee': fee
         };
     }
 
@@ -1024,7 +1000,7 @@ module.exports = class poloniex extends Exchange {
         let request = {currencyPair: market.id};
         if (since) {
             request.start = since / 1000;
-            request.end = Math.round(Date.now() / 1000);
+            request.end = this.seconds + 1;
         }
         const trades = await this.privatePostReturnTradeHistory(this.extend(request));
         let orders = {};
@@ -1042,7 +1018,7 @@ module.exports = class poloniex extends Exchange {
                     total: 0,
                     startingAmount: 0,
                     resultingTrades: [],
-                    fee: trade.fee
+                    fee: 0
                 };
             orders[trade.orderNumber].total += Number(trade.total);
             orders[trade.orderNumber].amount += Number(trade.amount);
@@ -1054,7 +1030,7 @@ module.exports = class poloniex extends Exchange {
             parseOrders.push(this.parseOrder(order, market));
         });
 
-        return parseOrders
+        return this.filterBySinceLimit (parseOrders, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
