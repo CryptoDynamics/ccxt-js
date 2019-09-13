@@ -1018,9 +1018,9 @@ module.exports = class poloniex extends Exchange {
                     status: 'closed',
                     type: trade.type,
                     rate: Number(trade.rate),
-                    amount: 0,
+                    // amount: 0,
                     total: 0,
-                    // startingAmount: 0,
+                    startingAmount: 0,
                     resultingTrades: [],
                     fee: 0
                 };
