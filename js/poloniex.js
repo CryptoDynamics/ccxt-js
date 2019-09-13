@@ -953,7 +953,7 @@ module.exports = class poloniex extends Exchange {
                     rate: Number(trades[0].rate),
                     amount: 0,
                     total: 0,
-                    startingAmount: 0,
+                    // startingAmount: 0,
                     resultingTrades: trades,
                     fee: trades[0].fee
                 };
@@ -961,7 +961,7 @@ module.exports = class poloniex extends Exchange {
                 trades.forEach(trade => {
                     order.total += Number(trade.total);
                     order.amount += Number(trade.amount);
-                    order.startingAmount += Number(trade.amount);
+                    // order.startingAmount += Number(trade.amount);
                 });
                 order = this.parseOrder(order, market);
                 return order;
@@ -1019,13 +1019,13 @@ module.exports = class poloniex extends Exchange {
                     rate: Number(trade.rate),
                     amount: 0,
                     total: 0,
-                    startingAmount: 0,
+                    // startingAmount: 0,
                     resultingTrades: [],
                     fee: 0
                 };
             orders[trade.orderNumber].total += Number(trade.total);
             orders[trade.orderNumber].amount += Number(trade.amount);
-            orders[trade.orderNumber].startingAmount += Number(trade.amount);
+            // orders[trade.orderNumber].startingAmount += Number(trade.amount);
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
         let parseOrders = [];
