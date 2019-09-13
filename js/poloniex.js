@@ -1018,15 +1018,15 @@ module.exports = class poloniex extends Exchange {
                     status: 'closed',
                     type: trade.type,
                     rate: Number(trade.rate),
-                    // amount: 0,
+                    amount: 0,
                     total: 0,
-                    startingAmount: 0,
+                    // startingAmount: 0,
                     resultingTrades: [],
                     fee: 0
                 };
             orders[trade.orderNumber].total += Number(trade.total);
-            // orders[trade.orderNumber].amount += Number(trade.amount);
-            orders[trade.orderNumber].startingAmount += Number(trade.amount);
+            orders[trade.orderNumber].amount += Number(trade.amount);
+            // orders[trade.orderNumber].startingAmount += Number(trade.amount);
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
         let parseOrders = [];
