@@ -827,6 +827,9 @@ module.exports = class poloniex extends Exchange {
         const amount = this.safeFloat (order, 'startingAmount', remaining);
         let filled = undefined;
         let cost = 0;
+        let fee = 0;
+        let lastTradeTimestamp = undefined;
+
         if (amount !== undefined) {
             if (remaining !== undefined) {
                 filled = amount - remaining;
@@ -843,8 +846,12 @@ module.exports = class poloniex extends Exchange {
                     const trade = trades[i];
                     const tradeAmount = trade['amount'];
                     const tradePrice = trade['price'];
+                    const tradeTimestamp = this.parse8601 (trade['date']);
+
                     filled = this.sum (filled, tradeAmount);
                     cost += tradePrice * tradeAmount;
+                    fee += tradeAmount * trade.fee;
+                    if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 }
             }
         }
@@ -859,7 +866,7 @@ module.exports = class poloniex extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -870,7 +877,7 @@ module.exports = class poloniex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -951,6 +958,8 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
         id = id.toString ();
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
@@ -959,45 +968,26 @@ module.exports = class poloniex extends Exchange {
         let trades = await this.fetchOrderTrades(id, symbol);
         if (result === undefined) {
             if (trades !== undefined){
-                let amount = 0;
-                let cost = 0;
-                let filled = 0;
-                let total = 0;
-                let feeCost = 0;
-                let feeAmount = 0;
-                let price = 0;
-                trades.forEach(trade => {
-                    amount += trade['amount'];
-                    cost += trade['cost'];
-                    filled += trade['filled'];
-                    total += trade['total'];
-                    price += trade['price'];
-                    feeCost += trade['fee']['cost'];
-                    feeAmount += parseFloat(trade['fee']['amount']);
-                });
-
-                price = price / trades.length;
-
                 let order = {
-                    'id': id,
-                    'timestamp': trades[trades.length - 1]['timestamp'],
-                    'datetime': trades[trades.length - 1]['datetime'],
-                    'lastTradeTimestamp': trades[trades.length - 1]['timestamp'],
-                    'status': 'closed',
-                    'symbol': trades[0]['symbol'],
-                    'type': trades[0]['type'],
-                    'side': trades[0]['side'],
-                    'price': price,
-                    'cost': cost,
-                    'total': total,
-                    'amount': amount,
-                    'filled': filled,
-                    'remaining': 0,
-                    'trades': trades,
-                    'feeAmount': feeAmount,
-                    'feeCost': feeCost,
+                    orderNumber: trades[0].orderNumber,
+                    date: trades[0].date,
+                    currencyPair: market.id,
+                    status: 'closed',
+                    type: trades[0].type,
+                    rate: Number(trades[0].rate),
+                    amount: 0,
+                    total: 0,
+                    startingAmount: 0,
+                    resultingTrades: trades,
+                    fee: trades[0].fee
                 };
-                this.orders[id] = order;
+
+                trades.forEach(trade => {
+                    order.total += Number(trade.total);
+                    order.amount += Number(trade.amount);
+                    order.startingAmount += Number(trade.amount);
+                });
+                order = this.parseOrder(order, market);
                 return order;
             }else {
                 return {
@@ -1031,33 +1021,17 @@ module.exports = class poloniex extends Exchange {
     async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         let market = this.market(symbol);
-        const trades = await this.privatePostReturnTradeHistory(this.extend({currencyPair: market.id}));
+        const trades = await this.privatePostReturnTradeHistory(this.extend({currencyPair: market.id, start: since,
+            end: new Date.now() / 1000}));
         let orders = {};
-        // status: 'Open',
-        //     rate: '0.40000000',
-        //     amount: '1.00000000',
-        //     currencyPair: 'BTC_ETH',
-        //     date: '2018-10-17 17:04:50',
-        //     total: '0.40000000',
-        //     type: 'buy',
-        //     startingAmount: '1.00000'
 
-        // [ { amount: '3.0',
-        //     date: '2018-10-25 23:03:21',
-        //     rate: '0.0002',
-        //     total: '0.0006',
-        //     tradeID: '251834',
-        //     type: 'buy' } ],
-        //     fee: '0.01000000',
-        //     clientOrderId: '12345'
-        // currencyPair: 'BTC_ETH' }
         trades.forEach(trade => {
             if (!(trade.orderNumber in orders))
                 orders[trade.orderNumber] = {
                     orderNumber: trade.orderNumber,
                     date: trade.date,
                     currencyPair: market.id,
-                    status: '',
+                    status: 'closed',
                     type: trade.type,
                     rate: Number(trade.rate),
                     amount: 0,
