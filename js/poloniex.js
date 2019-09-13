@@ -952,17 +952,17 @@ module.exports = class poloniex extends Exchange {
                     status: 'closed',
                     type: trades[0].type,
                     rate: Number(trades[0].rate),
-                    amount: 0,
+                    // amount: 0,
                     total: 0,
-                    // startingAmount: 0,
+                    startingAmount: 0,
                     resultingTrades: trades,
                     fee: trades[0].fee
                 };
 
                 trades.forEach(trade => {
                     order.total += Number(trade.total);
-                    order.amount += Number(trade.amount);
-                    // order.startingAmount += Number(trade.amount);
+                    // order.amount += Number(trade.amount);
+                    order.startingAmount += Number(trade.amount);
                 });
                 order = this.parseOrder(order, market);
                 return order;
