@@ -818,8 +818,7 @@ module.exports = class poloniex extends Exchange {
             if (trades !== undefined) {
                 filled = 0;
                 cost = 0;
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
+                trades.forEach(trade => {
                     const tradeAmount = trade['amount'];
                     const tradePrice = trade['price'];
                     const tradeTimestamp = this.parse8601 (trade['date']);
@@ -828,7 +827,7 @@ module.exports = class poloniex extends Exchange {
                     cost += tradePrice * tradeAmount;
                     fee += tradeAmount * trade.fee;
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
-                }
+                });
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1017,15 +1016,15 @@ module.exports = class poloniex extends Exchange {
                     status: 'closed',
                     type: trade.type,
                     rate: Number(trade.rate),
-                    amount: 0,
+                    // amount: 0,
                     total: 0,
-                    // startingAmount: 0,
+                    startingAmount: 0,
                     resultingTrades: [],
                     fee: 0
                 };
             orders[trade.orderNumber].total += Number(trade.total);
-            orders[trade.orderNumber].amount += Number(trade.amount);
-            // orders[trade.orderNumber].startingAmount += Number(trade.amount);
+            // orders[trade.orderNumber].amount += Number(trade.amount);
+            orders[trade.orderNumber].startingAmount += Number(trade.amount);
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
         let parseOrders = [];
