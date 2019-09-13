@@ -829,7 +829,7 @@ module.exports = class poloniex extends Exchange {
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
                 fee = this.feeToPrecision(symbol, fee);
-                filled -= fee;
+                filled -= Number(fee);
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1025,8 +1025,8 @@ module.exports = class poloniex extends Exchange {
                     fee: 0
                 };
             orders[trade.orderNumber].total += Number(trade.total);
-            orders[trade.orderNumber].amount += Number(trade.amount);
-            // orders[trade.orderNumber].startingAmount += Number(trade.amount);
+            // orders[trade.orderNumber].amount += Number(trade.amount);
+            orders[trade.orderNumber].startingAmount += Number(trade.amount);
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
         let parseOrders = [];
