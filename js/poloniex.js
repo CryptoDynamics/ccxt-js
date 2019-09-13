@@ -828,6 +828,8 @@ module.exports = class poloniex extends Exchange {
                     fee += tradeAmount * trade.fee;
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
+                fee = this.feeToPrecision(symbol, fee);
+                filled -= fee;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
