@@ -1000,7 +1000,10 @@ module.exports = class poloniex extends Exchange {
         let request = {currencyPair: market.id};
         if (since) {
             request.start = since / 1000;
-            request.end = this.seconds + 1;
+            request.end = this.seconds() + 1;
+        }
+        if (limit !== undefined) {
+            request['limit'] = parseInt (limit);
         }
         const trades = await this.privatePostReturnTradeHistory(this.extend(request));
         let orders = {};
