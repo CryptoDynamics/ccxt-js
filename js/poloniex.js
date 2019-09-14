@@ -849,7 +849,7 @@ module.exports = class poloniex extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'cost': this.costToPrecision(cost),
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
