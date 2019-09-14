@@ -825,11 +825,11 @@ module.exports = class poloniex extends Exchange {
 
                     filled = this.sum (filled, tradeAmount);
                     cost += tradePrice * tradeAmount;
-                    fee += tradeAmount * trade.fee;
+                    fee += tradeAmount * Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
                 fee = this.feeToPrecision(symbol, fee);
-                filled -= Number(fee);
+                console.log(fee);
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1018,15 +1018,15 @@ module.exports = class poloniex extends Exchange {
                     status: 'closed',
                     type: trade.type,
                     rate: Number(trade.rate),
-                    amount: 0,
+                    // amount: 0,
                     total: 0,
-                    // startingAmount: 0,
+                    startingAmount: 0,
                     resultingTrades: [],
                     fee: 0
                 };
             orders[trade.orderNumber].total += Number(trade.total);
-            orders[trade.orderNumber].amount += Number(trade.amount);
-            // orders[trade.orderNumber].startingAmount += Number(trade.amount);
+            // orders[trade.orderNumber].amount += Number(trade.amount);
+            orders[trade.orderNumber].startingAmount += Number(trade.amount);
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
         let parseOrders = [];
