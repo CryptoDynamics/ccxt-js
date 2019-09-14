@@ -819,13 +819,13 @@ module.exports = class poloniex extends Exchange {
                 filled = 0;
                 cost = 0;
                 trades.forEach(trade => {
-                    const tradeAmount = trade['amount'];
-                    const tradePrice = trade['price'];
+                    const tradeAmount = Number(trade['amount']);
+                    const tradePrice = Number(trade['price']);
                     const tradeTimestamp = this.parse8601 (trade['date']);
 
                     filled = this.sum (filled, tradeAmount);
                     cost += tradePrice * tradeAmount;
-                    fee += tradeAmount * Number(trade.fee);
+                    fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
                 fee = this.feeToPrecision(symbol, fee);
@@ -849,7 +849,7 @@ module.exports = class poloniex extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
+            'cost': this.costToPrecision(cost),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
