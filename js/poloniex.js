@@ -935,6 +935,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         id = id.toString ();
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
@@ -962,6 +963,8 @@ module.exports = class poloniex extends Exchange {
                     // order.amount += Number(trade.amount);
                     order.startingAmount += Number(trade.amount);
                 });
+
+                let market = this.market(order.currencyPair);
                 order = this.parseOrder(order, market);
                 return order;
             }else {
