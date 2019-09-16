@@ -933,7 +933,6 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        id = id.toString ();
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
         }, params));
@@ -941,20 +940,17 @@ module.exports = class poloniex extends Exchange {
         let trades = await this.fetchOrderTrades(id);
         if (result === undefined) {
             if (trades !== undefined){
-
-                let order = {
-                    orderNumber: trades[0].orderNumber,
-                    date: trades[0].date,
-                    currencyPair: trades[0].currencyPair,
-                    status: 'closed',
-                    type: trades[0].type,
-                    rate: Number(trades[0].rate),
+                let order = {};
+                order.orderNumber = trades[0].orderNumber;
+                order.date = trades[0].date;
+                order.currencyPair = trades[0].currencyPair;
+                order.status = 'closed';
+                order.type = trades[0].type;
+                order.rate = Number(trades[0].rate);
                     // amount: 0,
-                    total: 0,
-                    startingAmount: 0,
-                    resultingTrades: [],
-                    fee: trades[0].fee
-                };
+                order.total = 0;
+                order.startingAmount = 0;
+                order.fee = trades[0].fee;
 
                 trades.forEach(trade => {
                     trade.orderNumber = id;
