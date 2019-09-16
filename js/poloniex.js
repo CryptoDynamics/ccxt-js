@@ -689,13 +689,13 @@ module.exports = class poloniex extends Exchange {
         const price = this.safeFloat (trade, 'rate');
         const cost = this.safeFloat (trade, 'total');
         const amount = this.safeFloat (trade, 'amount');
-        const feePer = Number(trade.fee);
+        const feePer = this.safeFloat (trade, 'fee');
 
         let fee = 0;
-        if ('fee' in trade) {
-            if (side === 'buy') fee = amount * feePer;
-            else fee = cost * feePer;
-        }
+
+        if (side === 'buy') fee = this.feeToPrecision(amount * feePer);
+        else if (side === 'sell') fee = this.feeToPrecision(cost * feePer);
+
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -828,6 +828,8 @@ module.exports = class poloniex extends Exchange {
                     fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
+                fee = this.feeToPrecision(symbol, fee);
+                cost = this.costToPrecision(symbol, cost);
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -937,7 +939,12 @@ module.exports = class poloniex extends Exchange {
             'orderNumber': id,
         }, params));
         const result = response['result'][id];
-        let trades = await this.fetchOrderTrades(id);
+        let trades = undefined;
+        try {
+            trades = await this.fetchOrderTrades(id);
+        }catch (e) {
+            trades = undefined;
+        }
         if (result === undefined) {
             if (trades !== undefined){
                 let order = {};
@@ -947,7 +954,6 @@ module.exports = class poloniex extends Exchange {
                 order.status = 'closed';
                 order.type = trades[0].type;
                 order.rate = Number(trades[0].rate);
-                    // amount: 0,
                 order.total = 0;
                 order.startingAmount = 0;
                 order.fee = trades[0].fee;
