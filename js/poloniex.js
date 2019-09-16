@@ -829,7 +829,7 @@ module.exports = class poloniex extends Exchange {
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
                 this.loadMarkets().then(() => {
-                    fee = this.feeToPrecision(symbol, fee);
+
                     cost = this.costToPrecision(symbol, cost);
                 });
             }
