@@ -693,8 +693,8 @@ module.exports = class poloniex extends Exchange {
         let fee = 0;
         if ('fee' in trade) {
             const rate = this.safeFloat (trade, 'fee');
-            if (side === 'buy') fee = this.feeToPrecision(symbol, amount * rate);
-            else fee = this.feeToPrecision(symbol, total * rate);
+            if (side === 'buy') fee = amount * rate;
+            else fee = total * rate;
         }
         return {
             'timestamp': timestamp,
@@ -828,9 +828,6 @@ module.exports = class poloniex extends Exchange {
                     fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
-                console.log(fee);
-                fee = this.feeToPrecision(symbol, fee);
-
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
