@@ -665,52 +665,50 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        this.loadMarkets().then(() => {
-            const id = this.safeString (trade, 'globalTradeID');
-            const orderId = this.safeString (trade, 'orderNumber');
-            const timestamp = this.parse8601 (this.safeString (trade, 'date'));
-            let symbol = undefined;
-            let base = undefined;
-            let quote = undefined;
-            if ((!market) && ('currencyPair' in trade)) {
-                const currencyPair = trade['currencyPair'];
-                if (currencyPair in this.markets_by_id) {
-                    market = this.markets_by_id[currencyPair];
-                } else {
-                    const parts = currencyPair.split ('_');
-                    quote = parts[0];
-                    base = parts[1];
-                    symbol = base + '/' + quote;
-                }
+        const id = this.safeString (trade, 'globalTradeID');
+        const orderId = this.safeString (trade, 'orderNumber');
+        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        let symbol = undefined;
+        let base = undefined;
+        let quote = undefined;
+        if ((!market) && ('currencyPair' in trade)) {
+            const currencyPair = trade['currencyPair'];
+            if (currencyPair in this.markets_by_id) {
+                market = this.markets_by_id[currencyPair];
+            } else {
+                const parts = currencyPair.split ('_');
+                quote = parts[0];
+                base = parts[1];
+                symbol = base + '/' + quote;
             }
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-            const side = this.safeString (trade, 'type');
-            const price = this.safeFloat (trade, 'rate');
-            const cost = this.safeFloat (trade, 'total');
-            const amount = this.safeFloat (trade, 'amount');
-            const feePer = this.safeFloat (trade, 'fee');
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (trade, 'type');
+        const price = this.safeFloat (trade, 'rate');
+        const cost = this.safeFloat (trade, 'total');
+        const amount = this.safeFloat (trade, 'amount');
+        const feePer = this.safeFloat (trade, 'fee');
 
-            let fee = 0;
+        let fee = 0;
 
-            if (side === 'buy') fee = this.feeToPrecision(amount * feePer);
-            else if (side === 'sell') fee = this.feeToPrecision(cost * feePer);
+        if (side === 'buy') fee = amount * feePer;
+        else if (side === 'sell') fee = cost * feePer;
 
-            return {
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': symbol,
-                'id': id,
-                'order': orderId,
-                'type': 'limit',
-                'side': side,
-                'price': price,
-                'amount': amount,
-                'cost': cost,
-                'fee': fee
-            };
-        });
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
