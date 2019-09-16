@@ -820,17 +820,14 @@ module.exports = class poloniex extends Exchange {
                 cost = 0;
                 trades.forEach(trade => {
                     const tradeAmount = trade['amount'];
+                    const tradeCost = trade['cost'];
                     const tradePrice = trade['price'];
                     const tradeTimestamp = this.parse8601 (trade['date']);
 
                     filled = this.sum (filled, tradeAmount);
-                    cost += tradePrice * tradeAmount;
+                    cost += tradeCost;
                     fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
-                });
-                this.loadMarkets().then(() => {
-
-                    cost = this.costToPrecision(symbol, cost);
                 });
             }
         }
