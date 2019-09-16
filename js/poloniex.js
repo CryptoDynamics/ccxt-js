@@ -819,8 +819,8 @@ module.exports = class poloniex extends Exchange {
                 filled = 0;
                 cost = 0;
                 trades.forEach(trade => {
-                    const tradeAmount = Number(trade['amount']);
-                    const tradePrice = Number(trade['price']);
+                    const tradeAmount = trade['amount'];
+                    const tradePrice = trade['price'];
                     const tradeTimestamp = this.parse8601 (trade['date']);
 
                     filled = this.sum (filled, tradeAmount);
@@ -966,8 +966,7 @@ module.exports = class poloniex extends Exchange {
 
                 await this.loadMarkets();
                 let market = this.market(order.currencyPair);
-                order = this.parseOrder(order, market);
-                return order;
+                return this.parseOrder(order, market);
             }else {
                 return {
                     id: id,
