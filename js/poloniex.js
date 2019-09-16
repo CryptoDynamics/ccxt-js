@@ -828,8 +828,9 @@ module.exports = class poloniex extends Exchange {
                     fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
-                fee = this.feeToPrecision(symbol, fee);
                 console.log(fee);
+                fee = this.feeToPrecision(symbol, fee);
+
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -935,7 +936,6 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         id = id.toString ();
         const response = await this.privatePostReturnOrderStatus (this.extend ({
             'orderNumber': id,
@@ -964,8 +964,7 @@ module.exports = class poloniex extends Exchange {
                     order.startingAmount += Number(trade.amount);
                 });
 
-                let market = this.market(order.currencyPair);
-                order = this.parseOrder(order, market);
+                order = this.parseOrder(order);
                 return order;
             }else {
                 return {
