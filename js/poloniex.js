@@ -941,6 +941,7 @@ module.exports = class poloniex extends Exchange {
         let trades = await this.fetchOrderTrades(id);
         if (result === undefined) {
             if (trades !== undefined){
+
                 let order = {
                     orderNumber: trades[0].orderNumber,
                     date: trades[0].date,
@@ -951,17 +952,21 @@ module.exports = class poloniex extends Exchange {
                     // amount: 0,
                     total: 0,
                     startingAmount: 0,
-                    resultingTrades: trades,
+                    resultingTrades: [],
                     fee: trades[0].fee
                 };
 
                 trades.forEach(trade => {
+                    trade.orderNumber = id;
                     order.total += Number(trade.total);
                     // order.amount += Number(trade.amount);
                     order.startingAmount += Number(trade.amount);
                 });
+                order.resultingTrades = trades;
 
-                order = this.parseOrder(order);
+                await this.loadMarkets();
+                let market = this.market(order.currencyPair);
+                order = this.parseOrder(order, market);
                 return order;
             }else {
                 return {
