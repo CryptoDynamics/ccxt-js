@@ -940,14 +940,14 @@ module.exports = class poloniex extends Exchange {
         const result = response['result'][id];
         let trades = undefined;
         try {
-            trades = await this.fetchOrderTrades(id);
+            trades = await this.privatePostReturnOrderTrades(this.extend({orderNumber: id}));
         }catch (e) {
             trades = undefined;
         }
         if (result === undefined) {
             if (trades !== undefined){
                 let order = {};
-                order.orderNumber = trades[0].orderNumber;
+                order.orderNumber = id;
                 order.date = trades[0].date;
                 order.currencyPair = trades[0].currencyPair;
                 order.status = 'closed';
@@ -965,9 +965,7 @@ module.exports = class poloniex extends Exchange {
                 });
                 order.resultingTrades = trades;
 
-                await this.loadMarkets();
-                let market = this.market(order.currencyPair);
-                return this.parseOrder(order, market);
+                return this.parseOrder(order);
             }else {
                 return {
                     id: id,
