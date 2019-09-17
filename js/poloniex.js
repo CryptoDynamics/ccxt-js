@@ -354,8 +354,8 @@ module.exports = class poloniex extends Exchange {
                 if (!(symbolCode in wallets[wallet])){
                     wallets[wallet][symbolCode] = {available: 0, on_orders: 0, total: 0};
                 }
-                wallets[wallet][symbolCode].available = parseFloat(available[wallet][symbol]);
-                wallets[wallet][symbolCode].total += parseFloat(wallets[wallet][symbolCode].available);
+                wallets[wallet][symbolCode].available = Number(available[wallet][symbol]);
+                wallets[wallet][symbolCode].total += Number(wallets[wallet][symbolCode].available);
             });
         });
 
@@ -692,9 +692,10 @@ module.exports = class poloniex extends Exchange {
         const feePer = this.safeFloat (trade, 'fee');
 
         let fee = 0;
-
-        if (side === 'buy') fee = amount * feePer;
-        else if (side === 'sell') fee = cost * feePer;
+        //
+        // if (side === 'buy') fee = amount * feePer;
+        // else if (side === 'sell') fee = cost * feePer;
+        fee = cost * feePer;
 
         return {
             'timestamp': timestamp,
