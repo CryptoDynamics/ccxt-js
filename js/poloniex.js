@@ -692,10 +692,10 @@ module.exports = class poloniex extends Exchange {
         const feePer = this.safeFloat (trade, 'fee');
 
         let fee = 0;
-        //
-        // if (side === 'buy') fee = amount * feePer;
-        // else if (side === 'sell') fee = cost * feePer;
-        fee = cost * feePer;
+
+        if (side === 'buy') fee = amount * feePer;
+        else if (side === 'sell') fee = cost * feePer;
+        // fee = cost * feePer;
 
         return {
             'timestamp': timestamp,
