@@ -870,7 +870,9 @@ module.exports = class poloniex extends Exchange {
                 'price': order['rate'],
             });
             result.push (await this.parseOrder (extended, market));
+            console.log(result.length);
         });
+
         return result;
     }
 
