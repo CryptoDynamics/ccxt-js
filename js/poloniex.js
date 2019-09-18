@@ -784,96 +784,93 @@ module.exports = class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
-        (async () => {
-            let timestamp = this.safeInteger (order, 'timestamp');
-            if (!timestamp) {
-                timestamp = this.parse8601 (order['date']);
-            }
-            let trades = undefined;
-            if ('resultingTrades' in order) {
-                trades = this.parseTrades (order['resultingTrades'], market);
-            }
-            let symbol = undefined;
-            const marketId = this.safeString (order, 'currencyPair');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-            const price = this.safeFloat2 (order, 'price', 'rate');
-            const remaining = this.safeFloat (order, 'amount');
-            const amount = this.safeFloat (order, 'startingAmount', remaining);
-            let filled = undefined;
-            let cost = 0;
-            let fee = 0;
-            let lastTradeTimestamp = undefined;
+    async parseOrder (order, market = undefined) {
+        let timestamp = this.safeInteger (order, 'timestamp');
+        if (!timestamp) {
+            timestamp = this.parse8601 (order['date']);
+        }
+        let trades = undefined;
+        if ('resultingTrades' in order) {
+            trades = this.parseTrades (order['resultingTrades'], market);
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'currencyPair');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat2 (order, 'price', 'rate');
+        const remaining = this.safeFloat (order, 'amount');
+        const amount = this.safeFloat (order, 'startingAmount', remaining);
+        let filled = undefined;
+        let cost = 0;
+        let fee = 0;
+        let lastTradeTimestamp = undefined;
 
-            if (amount !== undefined) {
-                if (remaining !== undefined) {
-                    filled = amount - remaining;
-                    if (price !== undefined) {
-                        cost = filled * price;
-                    }
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+                if (price !== undefined) {
+                    cost = filled * price;
                 }
             }
-            if (filled === undefined) {
-                if (trades !== undefined) {
-                    filled = 0;
-                    cost = 0;
-                    trades.forEach(trade => {
-                        const tradeAmount = trade['amount'];
-                        const tradeCost = trade['cost'];
-                        const tradePrice = trade['price'];
-                        const tradeTimestamp = this.parse8601 (trade['date']);
+        }
+        if (filled === undefined) {
+            if (trades !== undefined) {
+                filled = 0;
+                cost = 0;
+                trades.forEach(trade => {
+                    const tradeAmount = trade['amount'];
+                    const tradeCost = trade['cost'];
+                    const tradePrice = trade['price'];
+                    const tradeTimestamp = this.parse8601 (trade['date']);
 
-                        filled = this.sum (filled, tradeAmount);
-                        cost += tradeCost;
-                        fee += Number(trade.fee);
-                        if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
-                    });
-                }
+                    filled = this.sum (filled, tradeAmount);
+                    cost += tradeCost;
+                    fee += Number(trade.fee);
+                    if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
+                });
             }
-            const status = this.parseOrderStatus (this.safeString (order, 'status'));
-            let type = this.safeString (order, 'type');
-            const side = this.safeString (order, 'side', type);
-            if (type === side) {
-                type = undefined;
-            }
-            const id = this.safeString (order, 'orderNumber');
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side', type);
+        if (type === side) {
+            type = undefined;
+        }
+        const id = this.safeString (order, 'orderNumber');
 
-            await this.loadMarkets();
+        await this.loadMarkets();
 
-            return {
-                'id': id,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'lastTradeTimestamp': lastTradeTimestamp,
-                'status': status,
-                'symbol': symbol,
-                'type': type,
-                'side': side,
-                'price': price,
-                'cost': this.costToPrecision(symbol, cost),
-                'amount': amount,
-                'filled': filled,
-                'remaining': remaining,
-                'trades': trades,
-                'fee': this.feeToPrecision(symbol, fee),
-            };
-        })();
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': this.costToPrecision(symbol, cost),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': trades,
+            'fee': this.feeToPrecision(symbol, fee),
+        };
     }
 
     parseOpenOrders (orders, market, result) {
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+        orders.forEach(async order => {
             const extended = this.extend (order, {
                 'status': 'open',
                 'type': 'limit',
                 'side': order['type'],
                 'price': order['rate'],
             });
-            result.push (this.parseOrder (extended, market));
-        }
+            result.push (await this.parseOrder (extended, market));
+        });
         return result;
     }
 
@@ -971,7 +968,7 @@ module.exports = class poloniex extends Exchange {
                 });
                 order.resultingTrades = trades;
 
-                return this.parseOrder(order);
+                return await this.parseOrder(order);
             }else {
                 return {
                     id: id,
@@ -979,7 +976,7 @@ module.exports = class poloniex extends Exchange {
                 };
             }
         }else{
-            const order = this.parseOrder (result);
+            const order = await this.parseOrder (result);
             order['id'] = id;
             this.orders[id] = order;
             return order;
@@ -1036,9 +1033,9 @@ module.exports = class poloniex extends Exchange {
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
         let parseOrders = [];
-        Object.values(orders).forEach(order => {
-            parseOrders.push(this.parseOrder(order, market));
-        });
+        for (const order of Object.values(orders)) {
+            parseOrders.push(await this.parseOrder(order, market));
+        }
 
         return this.filterBySinceLimit (parseOrders, since, limit);
     }
@@ -1057,7 +1054,7 @@ module.exports = class poloniex extends Exchange {
         };
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        let order = this.parseOrder (this.extend ({
+        let order = await this.parseOrder (this.extend ({
             'timestamp': timestamp,
             'status': 'open',
             'type': type,
@@ -1099,7 +1096,7 @@ module.exports = class poloniex extends Exchange {
             if (symbol !== undefined) {
                 market = this.market (symbol);
             }
-            result = this.parseOrder (response, market);
+            result = await this.parseOrder (response, market);
             this.orders[result['id']] = result;
         }
         return result;
@@ -1164,7 +1161,7 @@ module.exports = class poloniex extends Exchange {
         if (result === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        const order = this.parseOrder (result);
+        const order = await this.parseOrder (result);
         order['id'] = id;
         this.orders[id] = order;
         return order;
