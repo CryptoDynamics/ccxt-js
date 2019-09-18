@@ -1071,7 +1071,7 @@ module.exports = class poloniex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        price = parseFloat (price);
+        price = Number (price);
         const request = {
             'orderNumber': id,
             'rate': this.priceToPrecision (symbol, price),
@@ -1086,13 +1086,13 @@ module.exports = class poloniex extends Exchange {
             const newid = response['orderNumber'];
             this.orders[newid] = this.extend (this.orders[id], {
                 'id': newid,
-                'price': price,
+                'price': Number(this.priceToPrecision(symbol, price)),
                 'status': 'open',
             });
             if (amount !== undefined) {
-                this.orders[newid]['amount'] = amount;
+                this.orders[newid]['amount'] = Number(amount);
             }
-            result = this.extend (this.orders[newid], { 'info': response });
+            result = this.extend (this.orders[newid]);
         } else {
             let market = undefined;
             if (symbol !== undefined) {
