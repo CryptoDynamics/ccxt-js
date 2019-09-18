@@ -862,8 +862,8 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    parseOpenOrders (orders, market, result) {
-        orders.forEach(async order => {
+    async parseOpenOrders (orders, market, result) {
+        for (let order of orders){
             const extended = this.extend (order, {
                 'status': 'open',
                 'type': 'limit',
@@ -871,7 +871,7 @@ module.exports = class poloniex extends Exchange {
                 'price': order['rate'],
             });
             result.push (await this.parseOrder (extended, market));
-        });
+        }
 
         return result;
     }
@@ -889,14 +889,14 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostReturnOpenOrders (this.extend (request, params));
         let openOrders = [];
         if (market !== undefined) {
-            openOrders = this.parseOpenOrders (response, market, openOrders);
+            openOrders = await this.parseOpenOrders (response, market, openOrders);
         } else {
             const marketIds = Object.keys (response);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const orders = response[marketId];
                 const m = this.markets_by_id[marketId];
-                openOrders = this.parseOpenOrders (orders, m, openOrders);
+                openOrders = await this.parseOpenOrders (orders, m, openOrders);
             }
         }
         for (let j = 0; j < openOrders.length; j++) {
