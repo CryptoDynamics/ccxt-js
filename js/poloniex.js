@@ -785,77 +785,82 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = this.safeInteger (order, 'timestamp');
-        if (!timestamp) {
-            timestamp = this.parse8601 (order['date']);
-        }
-        let trades = undefined;
-        if ('resultingTrades' in order) {
-            trades = this.parseTrades (order['resultingTrades'], market);
-        }
-        let symbol = undefined;
-        const marketId = this.safeString (order, 'currencyPair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const price = this.safeFloat2 (order, 'price', 'rate');
-        const remaining = this.safeFloat (order, 'amount');
-        const amount = this.safeFloat (order, 'startingAmount', remaining);
-        let filled = undefined;
-        let cost = 0;
-        let fee = 0;
-        let lastTradeTimestamp = undefined;
+        (async () => {
+            let timestamp = this.safeInteger (order, 'timestamp');
+            if (!timestamp) {
+                timestamp = this.parse8601 (order['date']);
+            }
+            let trades = undefined;
+            if ('resultingTrades' in order) {
+                trades = this.parseTrades (order['resultingTrades'], market);
+            }
+            let symbol = undefined;
+            const marketId = this.safeString (order, 'currencyPair');
+            market = this.safeValue (this.markets_by_id, marketId, market);
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+            const price = this.safeFloat2 (order, 'price', 'rate');
+            const remaining = this.safeFloat (order, 'amount');
+            const amount = this.safeFloat (order, 'startingAmount', remaining);
+            let filled = undefined;
+            let cost = 0;
+            let fee = 0;
+            let lastTradeTimestamp = undefined;
 
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-                if (price !== undefined) {
-                    cost = filled * price;
+            if (amount !== undefined) {
+                if (remaining !== undefined) {
+                    filled = amount - remaining;
+                    if (price !== undefined) {
+                        cost = filled * price;
+                    }
                 }
             }
-        }
-        if (filled === undefined) {
-            if (trades !== undefined) {
-                filled = 0;
-                cost = 0;
-                trades.forEach(trade => {
-                    const tradeAmount = trade['amount'];
-                    const tradeCost = trade['cost'];
-                    const tradePrice = trade['price'];
-                    const tradeTimestamp = this.parse8601 (trade['date']);
+            if (filled === undefined) {
+                if (trades !== undefined) {
+                    filled = 0;
+                    cost = 0;
+                    trades.forEach(trade => {
+                        const tradeAmount = trade['amount'];
+                        const tradeCost = trade['cost'];
+                        const tradePrice = trade['price'];
+                        const tradeTimestamp = this.parse8601 (trade['date']);
 
-                    filled = this.sum (filled, tradeAmount);
-                    cost += tradeCost;
-                    fee += Number(trade.fee);
-                    if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
-                });
+                        filled = this.sum (filled, tradeAmount);
+                        cost += tradeCost;
+                        fee += Number(trade.fee);
+                        if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
+                    });
+                }
             }
-        }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side', type);
-        if (type === side) {
-            type = undefined;
-        }
-        const id = this.safeString (order, 'orderNumber');
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': trades,
-            'fee': fee,
-        };
+            const status = this.parseOrderStatus (this.safeString (order, 'status'));
+            let type = this.safeString (order, 'type');
+            const side = this.safeString (order, 'side', type);
+            if (type === side) {
+                type = undefined;
+            }
+            const id = this.safeString (order, 'orderNumber');
+
+            await this.loadMarkets();
+
+            return {
+                'id': id,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'lastTradeTimestamp': lastTradeTimestamp,
+                'status': status,
+                'symbol': symbol,
+                'type': type,
+                'side': side,
+                'price': price,
+                'cost': this.costToPrecision(symbol, cost),
+                'amount': amount,
+                'filled': filled,
+                'remaining': remaining,
+                'trades': trades,
+                'fee': this.feeToPrecision(symbol, fee),
+            };
+        })();
     }
 
     parseOpenOrders (orders, market, result) {
