@@ -852,13 +852,13 @@ module.exports = class poloniex extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': this.priceToPrecision(symbol, price),
-            'cost': this.costToPrecision(symbol, cost),
+            'price': Number(this.priceToPrecision(symbol, price)),
+            'cost': Number(this.costToPrecision(symbol, cost)),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-            'fee': this.feeToPrecision(symbol, fee),
+            'fee': Number(this.feeToPrecision(symbol, fee)),
         };
     }
 
