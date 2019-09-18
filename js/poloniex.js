@@ -320,10 +320,10 @@ module.exports = class poloniex extends Exchange {
             let amount = 0;
             if (order.side === 'sell'){
                 symbol = order.symbol.split('/')[0];
-                amount = order.amount;
+                amount = Number(order.amount);
             }else {
                 symbol = order.symbol.split('/')[1];
-                amount = order.amount * order.price;
+                amount = Number(order.amount) * Number(order.price);
             }
 
             if (symbol in on_orders['exchange'])
@@ -785,6 +785,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async parseOrder (order, market = undefined) {
+
         let timestamp = this.safeInteger (order, 'timestamp');
         if (!timestamp) {
             timestamp = this.parse8601 (order['date']);
@@ -870,7 +871,6 @@ module.exports = class poloniex extends Exchange {
                 'price': order['rate'],
             });
             result.push (await this.parseOrder (extended, market));
-            console.log(result.length);
         });
 
         return result;
