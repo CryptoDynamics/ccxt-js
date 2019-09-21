@@ -686,8 +686,11 @@ module.exports = class bitfinex extends Exchange {
 
     async cancelLoanOrder (id, params = {}) {
         let response = await this.privatePostOfferCancel (this.extend ({ 'offer_id': parseInt (id) }, params));
-        response.date = Math.round(Date.now() / 1000);
-        return response;
+
+        return {
+            date: Math.round(Date.now() / 1000),
+            amount: response.remaining_amount
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

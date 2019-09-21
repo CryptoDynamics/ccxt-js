@@ -482,18 +482,20 @@ module.exports = class poloniex extends Exchange {
 
     async cancelLoanOrder (id, params = {}) {
         let response = await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': id}, params));
-        response.date = Math.round(Date.now() / 1000);
-        return response;
+        return {
+            date: Math.round(Date.now() / 1000),
+            amount: response.amount
+        };
     }
 
     async transferBalance (symbol, amount, from, to) {
         await this.loadMarkets ();
-        const response = await this.privatePostTransferBalance (this.extend ( {
+
+        return await this.privatePostTransferBalance (this.extend ( {
             'currency': this.currencyId(symbol),
             'amount': amount,
             'fromAccount': from,
             'toAccount': to } ));
-        return response;
     }
 
     async fetchTradingFees (params = {}) {
