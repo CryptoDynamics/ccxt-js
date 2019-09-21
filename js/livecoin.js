@@ -274,7 +274,7 @@ module.exports = class livecoin extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPaymentBalances (params);
-        const result = { 'info': response };
+
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -300,9 +300,29 @@ module.exports = class livecoin extends Exchange {
     }
 
 
-    async fetchWalletBalance ()
-    {
-        return {}
+    async fetchWalletBalance (){
+        await this.loadMarkets ();
+        let wallets = {exchange: {}, margin: {}, lending: {}};
+        const response = await this.privateGetPaymentBalances ();
+
+        for (let balance of response) {
+            const currencyId = this.safeString(balance, 'currency');
+            const code = this.commonCurrencyCode(currencyId);
+            if (!(code in wallets.exchange))
+                wallets.exchange[code] = {available: 0, on_orders: 0, total: 0};
+            switch (balance.type) {
+                case 'total':
+                    wallets.exchange[code].total = this.safeFloat(balance, 'value');
+                    break;
+                case 'available':
+                    wallets.exchange[code].available = this.safeFloat(balance, 'value');
+                    break;
+                case 'trade':
+                    wallets.exchange[code].on_orders = this.safeFloat(balance, 'value');
+                    break;
+            }
+        }
+        return wallets;
     }
 
     async fetchTradingFees (params = {}) {
