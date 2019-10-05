@@ -600,7 +600,7 @@ module.exports = class bitfinex extends Exchange {
         const offers = [];
         response.asks.forEach ((offer) => {
             offers.push ({
-                'rate': parseFloat (offer['rate']) / 365,
+                'rate': parseFloat (offer['rate']) / 365 / 100,
                 'amount': parseFloat (offer['amount'])
             });
         });
@@ -617,7 +617,7 @@ module.exports = class bitfinex extends Exchange {
                 offers.push ({
                     'id': offer['id'],
                     'symbol': this.commonCurrencyCode(offer['currency']),
-                    'rate': parseFloat (offer['rate']) / 365,
+                    'rate': parseFloat (offer['rate']) / 365 / 100,
                     'amount': parseFloat (offer['original_amount']),
                     'duration': parseFloat (offer['period']),
                     'date': parseInt (offer['timestamp'])
@@ -634,7 +634,7 @@ module.exports = class bitfinex extends Exchange {
             offers.push ({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
-                'rate': parseFloat (offer['rate']) / 365,
+                'rate': parseFloat (offer['rate']) / 365 / 100,
                 'amount': parseFloat (offer['amount']),
                 'duration': parseFloat (offer['period']),
                 'date': parseInt (offer['timestamp']) });
@@ -653,7 +653,7 @@ module.exports = class bitfinex extends Exchange {
                 offers.push ({
                     'id': offer['id'],
                     'symbol': this.commonCurrencyCode(offer['currency']),
-                    'rate': parseFloat (offer['rate']) / 365,
+                    'rate': parseFloat (offer['rate']) / 365 / 100,
                     'amount': parseFloat (offer['original_amount']),
                     'duration': parseFloat (offer['period']),
                     'earned': earn - fee,
@@ -666,6 +666,7 @@ module.exports = class bitfinex extends Exchange {
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         await this.loadMarkets ();
+        rate = rate * 100;
         const response = await this.privatePostOfferNew (this.extend ({
             'currency': this.currencyId(symbol),
             'amount': amount.toString (),

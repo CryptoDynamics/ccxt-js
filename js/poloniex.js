@@ -520,7 +520,7 @@ module.exports = class poloniex extends Exchange {
         }
         const response = await this.publicGetReturnOrderBook (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'seq');
+        // orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
     }
 
