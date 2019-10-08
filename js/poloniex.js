@@ -1002,10 +1002,11 @@ module.exports = class poloniex extends Exchange {
         return this.filterOrdersByStatus (orders, 'open');
     }
 
-    async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         let market = this.market(symbol);
-        let request = {currencyPair: market.id};
+        let currencyPair = (market)? market.id: 'all';
+        let request = {currencyPair: currencyPair};
         if (since) {
             request.start = since / 1000;
             request.end = this.seconds() + 1;
