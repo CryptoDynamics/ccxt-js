@@ -1017,12 +1017,30 @@ module.exports = class poloniex extends Exchange {
         const trades = await this.privatePostReturnTradeHistory(this.extend(request));
         let orders = {};
 
+        if (market){
+            orders = this.parseClosedOrdersTrades(market.id, trades);
+        }else{
+            Object.keys(trades).forEach(symbol => {
+                orders = Object.assign({}, orders, this.parseClosedOrdersTrades(symbol, trades[symbol]));
+            });
+        }
+
+        let parseOrders = [];
+        for (const order of Object.values(orders)) {
+            parseOrders.push(await this.parseOrder(order, market));
+        }
+
+        return this.filterBySinceLimit (parseOrders, since, limit);
+    }
+
+    parseClosedOrdersTrades(symbol, trades){
+        let orders = {};
         trades.forEach(trade => {
             if (!(trade.orderNumber in orders))
                 orders[trade.orderNumber] = {
                     orderNumber: trade.orderNumber,
                     date: trade.date,
-                    currencyPair: market.id,
+                    currencyPair: symbol,
                     status: 'closed',
                     type: trade.type,
                     rate: Number(trade.rate),
@@ -1037,12 +1055,7 @@ module.exports = class poloniex extends Exchange {
             orders[trade.orderNumber].startingAmount += Number(trade.amount);
             orders[trade.orderNumber].resultingTrades.push(trade);
         });
-        let parseOrders = [];
-        for (const order of Object.values(orders)) {
-            parseOrders.push(await this.parseOrder(order, market));
-        }
-
-        return this.filterBySinceLimit (parseOrders, since, limit);
+        return orders
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
