@@ -779,8 +779,8 @@ module.exports = class bitfinex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeFloat (ticker, 'daily_change'),
+            'percentage': this.safeFloat (ticker, 'daily_change_perc'),
             'average': this.safeFloat (ticker, 'mid'),
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined
