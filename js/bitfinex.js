@@ -721,8 +721,7 @@ module.exports = class bitfinex extends Exchange {
             'percentage': ticker[length - 5] * 100,
             'average': undefined,
             'baseVolume': ticker[length - 3],
-            'quoteVolume': undefined,
-            'info': ticker,
+            'quoteVolume': undefined
         };
     }
 
@@ -736,6 +735,7 @@ module.exports = class bitfinex extends Exchange {
             request['symbols'] = 'ALL';
         }
         const tickers = await this.v2GetTickers (this.extend (request, params));
+        console.log(tickers[0]);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
