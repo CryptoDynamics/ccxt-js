@@ -364,28 +364,7 @@ module.exports = class bitfinex2 extends bitfinex {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (symbols !== undefined) {
-            const ids = this.marketIds (symbols);
-            request['symbols'] = ids.join (',');
-        } else {
-            request['symbols'] = 'ALL';
-        }
-        const tickers = await this.publicGetTickers (this.extend (request, params));
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const id = ticker[0];
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
-        }
-        return result;
-    }
+
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
