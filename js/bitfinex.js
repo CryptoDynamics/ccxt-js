@@ -699,6 +699,7 @@ module.exports = class bitfinex extends Exchange {
         // const response = await this.publicGetTickers (params);
         const response = await this.v2GetTickers(this.extend (params));
         console.log(response);
+        return response;
         // const result = {};
         // for (let i = 0; i < response.length; i++) {
         //     const ticker = this.parseTicker (response[i]);
