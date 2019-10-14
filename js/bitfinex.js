@@ -443,7 +443,7 @@ module.exports = class bitfinex extends Exchange {
     async fetchLendingSymbols(){
         await this.loadMarkets ();
         let symbols = [];
-        let lending_symbols = ['ZRX', 'ZEC', 'XRP', 'XMR', 'USDT', 'USD', 'SAN', 'OMG', 'NEO', 'LTC', 'LEO', 'JPY', 'IOTA', 'GBP', 'EUR', 'ETP', 'ETH', 'ETC', 'EOS', 'EDO', 'DASH', 'BTG', 'BTC', 'BCV', 'BCH'];
+        let lending_symbols = ['BTC', 'ETH', 'ZRX', 'ZEC', 'XRP', 'XMR', 'USDT', 'USD', 'SAN', 'OMG', 'NEO', 'LTC', 'LEO', 'JPY', 'IOTA', 'GBP', 'EUR', 'ETP', 'ETC', 'EOS', 'EDO', 'DASH', 'BTG', 'BCV', 'BCH'];
         lending_symbols.forEach(symbol => {
             symbols.push(this.commonCurrencyCode(symbol));
         });

@@ -379,6 +379,35 @@ module.exports = class liquid extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    //
+    async fetchLendingSymbols(){
+        await this.loadMarkets ();
+        let symbols = [];
+        let lending_symbols = ['BTC', 'ETH', 'XRP', 'USD', 'EUR', 'SGD', 'HKD', 'AUD', 'JPY', 'PHP'];
+        lending_symbols.forEach(symbol => {
+            symbols.push(this.commonCurrencyCode(symbol));
+        });
+        return symbols;
+    }
+
+    async fetchLoanBook (symbol, count = 1) {
+        await this.loadMarkets ();
+        const response = await this.publicGetIrLadders(this.extend ({
+            'currency': this.currencyId(symbol)
+        }));
+        const offers = [];
+        if (!('bids' in response)) return offers;
+        response['bids'].forEach ((offer) => {
+            if (offers.length >= count) return false;
+
+            offers.push ({
+                'rate': Number(offer[0]),
+                'amount': Number(offer[1]),
+            });
+        });
+        return offers;
+    }
+
     parseTrade (trade, market) {
         // {             id:  12345,
         //         quantity: "6.789",
