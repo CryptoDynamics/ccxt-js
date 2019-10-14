@@ -392,7 +392,7 @@ module.exports = class liquid extends Exchange {
 
     async fetchLoanBook (symbol, count = 1) {
         await this.loadMarkets ();
-        const response = await this.publicGetIrLadders(this.extend ({
+        const response = await this.publicGetIrLaddersCurrency(this.extend ({
             'currency': this.currencyId(symbol)
         }));
         const offers = [];
