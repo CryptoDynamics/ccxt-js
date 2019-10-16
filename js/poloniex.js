@@ -802,7 +802,7 @@ module.exports = class poloniex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat2 (order, 'price', 'rate');
+        let price = this.safeFloat2 (order, 'price', 'rate');
         const remaining = this.safeFloat (order, 'amount');
         const amount = this.safeFloat (order, 'startingAmount', remaining);
         let filled = undefined;
@@ -822,10 +822,11 @@ module.exports = class poloniex extends Exchange {
             if (trades !== undefined) {
                 filled = 0;
                 cost = 0;
+                let tradePrice = 0;
                 trades.forEach(trade => {
                     const tradeAmount = trade['amount'];
                     const tradeCost = trade['cost'];
-                    const tradePrice = trade['price'];
+                    tradePrice += trade['price'];
                     const tradeTimestamp = this.parse8601 (trade['date']);
 
                     filled = this.sum (filled, tradeAmount);
@@ -833,6 +834,7 @@ module.exports = class poloniex extends Exchange {
                     fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
+                price = tradePrice / trades.length;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
