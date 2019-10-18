@@ -834,7 +834,8 @@ module.exports = class poloniex extends Exchange {
                     fee += Number(trade.fee);
                     if (lastTradeTimestamp < tradeTimestamp) lastTradeTimestamp = tradeTimestamp;
                 });
-                price = tradePrice / trades.length;
+                if (tradePrice)
+                    price = tradePrice / trades.length;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
