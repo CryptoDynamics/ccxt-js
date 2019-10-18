@@ -727,24 +727,12 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        if (symbols !== undefined) {
-            const ids = this.marketIds (symbols);
-            request['symbols'] = ids.join (',');
-        } else {
-            request['symbols'] = 'ALL';
-        }
-        const tickers = await this.v2GetTickers (this.extend (request, params));
-        console.log(tickers[0]);
+        const response = await this.publicGetTickers (params);
         const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const id = ticker[0];
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                result[symbol] = this.v2ParseTicker (ticker, market);
-            }
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
@@ -822,8 +810,8 @@ module.exports = class bitfinex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'daily_change'),
-            'percentage': this.safeFloat (ticker, 'daily_change_perc'),
+            'change': 0,
+            'percentage': 0,
             'average': this.safeFloat (ticker, 'mid'),
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined

@@ -826,7 +826,7 @@ module.exports = class poloniex extends Exchange {
                 trades.forEach(trade => {
                     const tradeAmount = trade['amount'];
                     const tradeCost = trade['cost'];
-                    tradePrice += trade['price'];
+                    tradePrice += Number(trade['price']);
                     const tradeTimestamp = this.parse8601 (trade['date']);
 
                     filled = this.sum (filled, tradeAmount);
