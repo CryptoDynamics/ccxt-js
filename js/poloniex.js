@@ -787,7 +787,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async parseOrder (order, market = undefined) {
-
+        await this.loadMarkets();
         let timestamp = this.safeInteger (order, 'timestamp');
         if (!timestamp) {
             timestamp = this.parse8601 (order['date']);
@@ -845,8 +845,6 @@ module.exports = class poloniex extends Exchange {
             type = undefined;
         }
         const id = this.safeString (order, 'orderNumber');
-
-        await this.loadMarkets();
 
         return {
             'id': id,
