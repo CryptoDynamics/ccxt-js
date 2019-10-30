@@ -258,8 +258,7 @@ module.exports = class liquid extends Exchange {
                 'taker': taker,
                 'limits': limits,
                 'precision': precision,
-                'active': active,
-                'info': market,
+                'active': active
             });
         }
         return result;
@@ -268,7 +267,7 @@ module.exports = class liquid extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balances = await this.privateGetAccountsBalance (params);
-        const result = { 'info': balances };
+        const result = {};
         for (let b = 0; b < balances.length; b++) {
             const balance = balances[b];
             const currencyId = balance['currency'];
@@ -282,6 +281,25 @@ module.exports = class liquid extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchWalletBalance(){
+        let wallets = {exchange:{}, margin:{}, lending:{}};
+        let total = await this.privateGetAccountsBalance();
+        let detailsSymbol;
+        for (let dep of total){
+            wallets.exchange[dep.currency] = {};
+            wallets.exchange[dep.currency].total = Number(dep.balance);
+            wallets.margin[dep.currency].total = Number(dep.balance);
+            wallets.lending[dep.currency].total = Number(dep.balance);
+            detailsSymbol = await this.privateGetAccountsCurrency(this.extend({currency: dep.currency}));
+            wallets.exchange[dep.currency].available = Number(detailsSymbol['free_balance']);
+            wallets.margin[dep.currency].available = wallets.exchange[dep.currency].available;
+            wallets.lending[dep.currency].available = wallets.exchange[dep.currency].available;
+            wallets.exchange[dep.currency].on_orders = Number(detailsSymbol['reserved_balance']);
+            wallets.margin[dep.currency].on_orders = Number(detailsSymbol['margin']);
+            wallets.lending[dep.currency].on_orders = wallets.exchange[dep.currency].on_orders;
+        }
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -352,8 +370,7 @@ module.exports = class liquid extends Exchange {
             'percentage': percentage,
             'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume_24h'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            'quoteVolume': undefined
         };
     }
 
@@ -408,6 +425,73 @@ module.exports = class liquid extends Exchange {
         return offers;
     }
 
+    async fetchOpenLoans (symbol) {
+        let response = await this.privateGetLoanBids(this.extend({currency: this.currencyId(symbol)}));
+        let offers = [];
+        for (let offer of response['models']){
+            offers.push({
+                'id': offer['id'],
+                'symbol': this.commonCurrencyCode(symbol),
+                'rate': Number(offer['rate']),
+                'amount': Number (offer['quantity']),
+                'duration': 0,
+                'date': this.milliseconds() / 1000
+            });
+        }
+        return offers;
+
+    }
+
+    async fetchActiveLoans () {
+        // let response = await this.privateGetLoans(this.extend({currency: this.currencyId(symbol)}));
+        // let offers = [];
+        // for (let offer of response['models']){
+        //     offers.push({
+        //         'id': offer['id'],
+        //         'symbol': this.commonCurrencyCode(symbol),
+        //         'rate': Number(offer['rate']),
+        //         'amount': Number (offer['quantity']),
+        //         'duration': 0,
+        //         'date': this.milliseconds() / 1000
+        //     });
+        // }
+        // return offers;
+        return {};
+    }
+
+    async fetchLoansHistory(start, end){
+        return [];
+    }
+
+    async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
+        await this.loadMarkets();
+        const request = {currency: this.currencyId(symbol), quantity: amount, rate: rate};
+        let response = await this.privatePostLoanBids(this.extend(request));
+        return {
+            id: response.id,
+            symbol: symbol,
+            amount: Number(amount),
+            rate: Number(response.rate),
+            duration: Number(duration),
+            renew: Number(renew),
+            date: Math.round(Date.now() / 1000)
+        };
+    }
+
+    async cancelLoanOrder (id, params = {}) {
+        let response = await this.privatePutLoanBidsIdClose(this.extend({
+            id: id
+        }));
+        return {
+            date: Math.round(Date.now() / 1000),
+            amount: Number(response.quantity) - Number(response.filled_quantity)
+        };
+    }
+
+    async transferBalance (symbol, amount, from, to) {
+        return {};
+    }
+
     parseTrade (trade, market) {
         // {             id:  12345,
         //         quantity: "6.789",
@@ -436,7 +520,6 @@ module.exports = class liquid extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         return {
-            'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -693,8 +776,7 @@ module.exports = class liquid extends Exchange {
             'fee': {
                 'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'order_fee'),
-            },
-            'info': order,
+            }
         };
     }
 
