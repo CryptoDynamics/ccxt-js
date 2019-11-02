@@ -740,7 +740,7 @@ module.exports = class bitfinex extends Exchange {
     async transferBalance (symbol, amount, from, to) {
         let response = await this.privatePostTransfer (this.extend ( {
             'currency': this.currencyId(symbol),
-            'amount': amount,
+            'amount': amount.toString(),
             'walletfrom': this.parseWallet (from),
             'walletto': this.parseWallet (to) } ));
         let status = {
