@@ -318,7 +318,7 @@ module.exports = class liquid extends Exchange {
             wallets.margin[dep.currency].total = wallets.margin[dep.currency].available + wallets.margin[dep.currency].on_orders;
             wallets.lending[dep.currency].total = wallets.lending[dep.currency].available + wallets.lending[dep.currency].on_orders;
         }
-
+        console.log(wallets);
         return wallets;
     }
 
