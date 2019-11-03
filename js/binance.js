@@ -97,7 +97,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/assets',
                     ],
                 },
-                'v3': {
+                'v3public': {
                     'get': [
                         'klines',
                         'ticker/price',
@@ -105,6 +105,12 @@ module.exports = class binance extends Exchange {
                         'openOrders',
                         'allOrders'
                     ],
+                },
+                'v3private': {
+                    'get': [
+                        'openOrders',
+                        'allOrders'
+                    ]
                 },
                 'public': {
                     'get': [
@@ -447,7 +453,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Number(limit); // default == max == 500
         }
-        const response = await this.v3GetKlines (this.extend (request, params));
+        const response = await this.v3publicGetKlines (this.extend (request, params));
 
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -724,7 +730,7 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
         request['timestamp'] = this.milliseconds();
-        const response = await this.v3GetAllOrders (this.extend (request, params));
+        const response = await this.v3privateGetAllOrders (this.extend (request, params));
 
         return this.parseOrders (response, market, since, limit);
     }
@@ -738,7 +744,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
         }
         request['timestamp'] = this.milliseconds();
-        const response = await this.v3GetOpenOrders (this.extend (request, params));
+        const response = await this.v3privateGetOpenOrders (this.extend (request, params));
         console.log(response);
         return this.parseOrders (response, market, since, limit);
     }
@@ -1035,7 +1041,7 @@ module.exports = class binance extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
+        if ((api === 'v3private') || (api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
