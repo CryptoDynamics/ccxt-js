@@ -739,6 +739,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
         }
         const response = await this.v3GetOpenOrders (this.extend (request, params));
+        console.log(response);
         return this.parseOrders (response, market, since, limit);
     }
 
