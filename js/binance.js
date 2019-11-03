@@ -362,9 +362,7 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit; // default = maximum = 100
         }
         const response = await this.publicGetDepth (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
-        return orderbook;
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -725,6 +723,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        request['timestamp'] = this.milliseconds();
         const response = await this.v3GetAllOrders (this.extend (request, params));
 
         return this.parseOrders (response, market, since, limit);
@@ -738,6 +737,7 @@ module.exports = class binance extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        request['timestamp'] = this.milliseconds();
         const response = await this.v3GetOpenOrders (this.extend (request, params));
         console.log(response);
         return this.parseOrders (response, market, since, limit);
