@@ -289,11 +289,12 @@ module.exports = class liquid extends Exchange {
         console.log(total);
         let detailsSymbol;
         for (let dep of total){
+            detailsSymbol = await this.privateGetAccountsCurrency(this.extend({currency: dep.currency}));
+            console.log(detailsSymbol);
             wallets.exchange[dep.currency] = {};
             wallets.exchange[dep.currency].total = Number(dep.balance);
             wallets.margin[dep.currency].total = Number(dep.balance);
             wallets.lending[dep.currency].total = Number(dep.balance);
-            detailsSymbol = await this.privateGetAccountsCurrency(this.extend({currency: dep.currency}));
             wallets.exchange[dep.currency].available = Number(detailsSymbol['free_balance']);
             wallets.margin[dep.currency].available = wallets.exchange[dep.currency].available;
             wallets.lending[dep.currency].available = wallets.exchange[dep.currency].available;
