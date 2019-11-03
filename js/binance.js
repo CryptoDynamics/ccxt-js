@@ -445,10 +445,11 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = Number(limit); // default == max == 500
         }
+        console.log(request);
         const response = await this.v3GetKlines (this.extend (request, params));
-        console.log(response);
+
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
