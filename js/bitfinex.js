@@ -669,9 +669,9 @@ module.exports = class bitfinex extends Exchange {
         rate = rate * 100;
         const response = await this.privatePostOfferNew (this.extend ({
             'currency': this.currencyId(symbol),
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'period': parseInt (duration),
-            'rate':  rate.toString(),
+            'rate':  this.numberToString (rate),
             'direction': 'lend',
             'renew': renew }, params));
         return {
