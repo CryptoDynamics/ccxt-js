@@ -50,7 +50,7 @@ module.exports = class liquid extends Exchange {
                     'get': [
                         'accounts/balance',
                         'accounts/main_asset',
-                        'accounts/{currency}',
+                        'accounts/{currency}/reserved_balance_details',
                         'accounts/{id}',
                         'crypto_accounts',
                         'executions/me',
@@ -288,26 +288,37 @@ module.exports = class liquid extends Exchange {
     async fetchWalletBalance(){
         let wallets = {exchange:{}, margin:{}, lending:{}};
         let total = await this.privateGetAccountsBalance();
-        console.log(total);
-        let detailsSymbol;
+
         for (let dep of total){
-            detailsSymbol = await this.privateGetAccountsCurrency(this.extend({currency: dep.currency}));
-            console.log(detailsSymbol);
+            // if (Number(dep.balance) === 0) return;
             wallets.exchange[dep.currency] = {available: 0, on_orders: 0, total: 0};
+            wallets.margin[dep.currency] = {available: 0, on_orders: 0, total: 0};
+            wallets.lending[dep.currency] = {available: 0, on_orders: 0, total: 0};
 
-            wallets.exchange[dep.currency].total = Number(dep.balance);
-            wallets.margin[dep.currency].total = Number(dep.balance);
-            wallets.lending[dep.currency].total = Number(dep.balance);
+            let openLoans = await this.fetchOpenLoans(dep.currency);
+            let activeLoans = await this.fetchActiveLoans(dep.currency);
+            let onorders = 0;
 
-            wallets.exchange[dep.currency].available = Number(detailsSymbol['free_balance']);
+            openLoans.forEach(loan => {
+                onorders += Number(loan.amount);
+            });
+            activeLoans.forEach(loan => {
+                onorders += Number(loan.amount);
+            });
+
+            wallets.exchange[dep.currency].available = Number(dep.balance);
             wallets.margin[dep.currency].available = wallets.exchange[dep.currency].available;
             wallets.lending[dep.currency].available = wallets.exchange[dep.currency].available;
 
-            wallets.exchange[dep.currency].on_orders = Number(detailsSymbol['reserved_balance']);
-            wallets.margin[dep.currency].on_orders = Number(detailsSymbol['margin']);
-            wallets.lending[dep.currency].on_orders = wallets.exchange[dep.currency].on_orders;
+            wallets.exchange[dep.currency].on_orders = onorders;
+            wallets.margin[dep.currency].on_orders = onorders;
+            wallets.lending[dep.currency].on_orders = onorders;
+
+            wallets.exchange[dep.currency].total = wallets.exchange[dep.currency].available + wallets.exchange[dep.currency].on_orders;
+            wallets.margin[dep.currency].total = wallets.margin[dep.currency].available + wallets.margin[dep.currency].on_orders;
+            wallets.lending[dep.currency].total = wallets.lending[dep.currency].available + wallets.lending[dep.currency].on_orders;
         }
-        console.log(wallets);
+
         return wallets;
     }
 
@@ -435,7 +446,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchOpenLoans (symbol) {
-        let response = await this.privateGetLoanBids(this.extend({currency: this.currencyId(symbol)}));
+        let response = await this.privateGetLoanBids(this.extend({currency: symbol}));
         let offers = [];
         for (let offer of response['models']){
             offers.push({
@@ -451,21 +462,20 @@ module.exports = class liquid extends Exchange {
 
     }
 
-    async fetchActiveLoans () {
-        // let response = await this.privateGetLoans(this.extend({currency: this.currencyId(symbol)}));
-        // let offers = [];
-        // for (let offer of response['models']){
-        //     offers.push({
-        //         'id': offer['id'],
-        //         'symbol': this.commonCurrencyCode(symbol),
-        //         'rate': Number(offer['rate']),
-        //         'amount': Number (offer['quantity']),
-        //         'duration': 0,
-        //         'date': this.milliseconds() / 1000
-        //     });
-        // }
-        // return offers;
-        return {};
+    async fetchActiveLoans (symbol) {
+        let response = await this.privateGetLoans(this.extend({currency: this.currencyId(symbol)}));
+        let offers = [];
+        for (let offer of response['models']){
+            offers.push({
+                'id': offer['id'],
+                'symbol': this.commonCurrencyCode(symbol),
+                'rate': Number(offer['rate']),
+                'amount': Number (offer['quantity']),
+                'duration': 0,
+                'date': this.milliseconds() / 1000
+            });
+        }
+        return offers;
     }
 
     async fetchLoansHistory(start, end){
