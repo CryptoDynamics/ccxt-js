@@ -99,6 +99,7 @@ module.exports = class binance extends Exchange {
                 },
                 'v3': {
                     'get': [
+                        'klines',
                         'ticker/price',
                         'ticker/bookTicker',
                     ],
@@ -446,7 +447,8 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const response = await this.publicGetKlines (this.extend (request, params));
+        const response = await this.v3GetKlines (this.extend (request, params));
+        console.log(response);
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
