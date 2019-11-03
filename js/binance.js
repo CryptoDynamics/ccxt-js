@@ -102,6 +102,8 @@ module.exports = class binance extends Exchange {
                         'klines',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'openOrders',
+                        'allOrders'
                     ],
                 },
                 'public': {
@@ -447,7 +449,6 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Number(limit); // default == max == 500
         }
-        console.log(request);
         const response = await this.v3GetKlines (this.extend (request, params));
 
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -724,7 +725,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAllOrders (this.extend (request, params));
+        const response = await this.v3GetAllOrders (this.extend (request, params));
 
         return this.parseOrders (response, market, since, limit);
     }
@@ -736,13 +737,8 @@ module.exports = class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const response = await this.v3GetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
