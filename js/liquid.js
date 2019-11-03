@@ -286,7 +286,7 @@ module.exports = class liquid extends Exchange {
     async fetchWalletBalance(){
         let wallets = {exchange:{}, margin:{}, lending:{}};
         let total = await this.privateGetAccountsBalance();
-        // console.log(total);
+        console.log(total);
         let detailsSymbol;
         for (let dep of total){
             wallets.exchange[dep.currency] = {};
@@ -301,6 +301,7 @@ module.exports = class liquid extends Exchange {
             wallets.margin[dep.currency].on_orders = Number(detailsSymbol['margin']);
             wallets.lending[dep.currency].on_orders = wallets.exchange[dep.currency].on_orders;
         }
+        console.log(wallets);
         return wallets;
     }
 
