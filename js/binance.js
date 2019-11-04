@@ -101,16 +101,20 @@ module.exports = class binance extends Exchange {
                 'v3public': {
                     'get': [
                         'klines',
+                        'depth',
+                        'trades',
                         'ticker/price',
-                        'ticker/bookTicker',
-                        'openOrders',
-                        'allOrders'
+                        'ticker/bookTicker'
                     ],
                 },
                 'v3private': {
                     'get': [
                         'openOrders',
-                        'allOrders'
+                        'allOrders',
+                        'order'
+                    ],
+                    'delete': [
+                        'order'
                     ]
                 },
                 'public': {
@@ -368,7 +372,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.v3publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
 
@@ -452,7 +456,7 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = Number(limit); // default == max == 500
+            request['limit'] = limit; // default == max == 500
         }
         const response = await this.v3publicGetKlines (this.extend (request, params));
 
@@ -710,15 +714,11 @@ module.exports = class binance extends Exchange {
         } else {
             request['orderId'] = parseInt (id);
         }
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const response = await this.v3privateGetOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            // throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-            return [];
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -730,9 +730,8 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        request['timestamp'] = this.milliseconds();
-        const response = await this.v3privateGetAllOrders (this.extend (request, params));
 
+        const response = await this.v3privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -744,9 +743,7 @@ module.exports = class binance extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        request['timestamp'] = this.milliseconds();
         const response = await this.v3privateGetOpenOrders (this.extend (request, params));
-        console.log(response);
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -765,7 +762,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'orderId': parseInt (id),
         };
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const response = await this.v3privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1132,7 +1129,7 @@ module.exports = class binance extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
 
-        if ((api === 'private') || (api === 'wapi')) {
+        if ((api === 'private') || (api === 'wapi') || (api === 'v3private')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;
