@@ -422,18 +422,20 @@ module.exports = class poloniex extends Exchange {
         return offers;
     }
 
-    async fetchActiveLoans () {
+    async fetchActiveLoans (symbol) {
         const response = await this.privatePostReturnActiveLoans ();
         const offers = [];
         response['provided'].forEach (offer => {
-            offers.push ({
-                'id': offer['id'],
-                'symbol': this.commonCurrencyCode(offer['currency']),
-                'rate': Number(offer['rate']),
-                'amount': Number(offer['amount']),
-                'duration': Number(offer['duration']),
-                'date': Date.parse (offer['date']) / 1000
-            });
+            let currency =  this.commonCurrencyCode(offer['currency']);
+            if (symbol === currency)
+                offers.push ({
+                    'id': offer['id'],
+                    'symbol': currency,
+                    'rate': Number(offer['rate']),
+                    'amount': Number(offer['amount']),
+                    'duration': Number(offer['duration']),
+                    'date': Date.parse (offer['date']) / 1000
+                });
         });
         return offers;
     }

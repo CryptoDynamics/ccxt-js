@@ -627,17 +627,19 @@ module.exports = class bitfinex extends Exchange {
         return offers;
     }
 
-    async fetchActiveLoans () {
+    async fetchActiveLoans (symbol) {
         const response = await this.privatePostCredits ();
         const offers = [];
         response.forEach ((offer) => {
-            offers.push ({
-                'id': offer['id'],
-                'symbol': this.commonCurrencyCode(offer['currency']),
-                'rate': parseFloat (offer['rate']) / 365 / 100,
-                'amount': parseFloat (offer['amount']),
-                'duration': parseFloat (offer['period']),
-                'date': parseInt (offer['timestamp']) });
+            let currency = this.commonCurrencyCode(offer['currency']);
+            if (symbol === currency)
+                offers.push ({
+                    'id': offer['id'],
+                    'symbol': currency,
+                    'rate': parseFloat (offer['rate']) / 365 / 100,
+                    'amount': parseFloat (offer['amount']),
+                    'duration': parseFloat (offer['period']),
+                    'date': parseInt (offer['timestamp']) });
         });
         return offers;
     }

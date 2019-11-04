@@ -306,19 +306,19 @@ module.exports = class liquid extends Exchange {
                 onorders += Number(loan.amount);
             });
 
-            wallets.exchange[dep.currency].available = Number(dep.balance);
-            wallets.margin[dep.currency].available = wallets.exchange[dep.currency].available;
-            wallets.lending[dep.currency].available = wallets.exchange[dep.currency].available;
+            // wallets.exchange[dep.currency].available = Number(dep.balance);
+            // wallets.margin[dep.currency].available = wallets.exchange[dep.currency].available;
+            wallets.lending[dep.currency].available = Number(dep.balance);
 
-            wallets.exchange[dep.currency].on_orders = onorders;
-            wallets.margin[dep.currency].on_orders = onorders;
+            // wallets.exchange[dep.currency].on_orders = onorders;
+            // wallets.margin[dep.currency].on_orders = onorders;
             wallets.lending[dep.currency].on_orders = onorders;
 
-            wallets.exchange[dep.currency].total = wallets.exchange[dep.currency].available + wallets.exchange[dep.currency].on_orders;
-            wallets.margin[dep.currency].total = wallets.margin[dep.currency].available + wallets.margin[dep.currency].on_orders;
+            // wallets.exchange[dep.currency].total = wallets.exchange[dep.currency].available + wallets.exchange[dep.currency].on_orders;
+            // wallets.margin[dep.currency].total = wallets.margin[dep.currency].available + wallets.margin[dep.currency].on_orders;
             wallets.lending[dep.currency].total = wallets.lending[dep.currency].available + wallets.lending[dep.currency].on_orders;
         }
-        console.log(wallets);
+        // console.log(wallets);
         return wallets;
     }
 

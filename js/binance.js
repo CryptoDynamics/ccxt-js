@@ -552,7 +552,6 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        console.log(order);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
@@ -598,33 +597,33 @@ module.exports = class binance extends Exchange {
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        let fee = undefined;
-        let trades = undefined;
-        const fills = this.safeValue (order, 'fills');
-        if (fills !== undefined) {
-            trades = this.parseTrades (fills, market);
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                cost = trades[0]['cost'];
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                };
-                for (let i = 1; i < trades.length; i++) {
-                    cost = this.sum (cost, trades[i]['cost']);
-                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
-                }
-            }
-        }
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
-            if (this.options['parseOrderToPrecision']) {
-                cost = parseFloat (this.costToPrecision (symbol, cost));
-            }
-        }
+        // let fee = undefined;
+        // let trades = undefined;
+        // const fills = this.safeValue (order, 'fills');
+        // if (fills !== undefined) {
+        //     trades = this.parseTrades (fills, market);
+        //     const numTrades = trades.length;
+        //     if (numTrades > 0) {
+        //         cost = trades[0]['cost'];
+        //         fee = {
+        //             'cost': trades[0]['fee']['cost'],
+        //             'currency': trades[0]['fee']['currency'],
+        //         };
+        //         for (let i = 1; i < trades.length; i++) {
+        //             cost = this.sum (cost, trades[i]['cost']);
+        //             fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
+        //         }
+        //     }
+        // }
+        // let average = undefined;
+        // if (cost !== undefined) {
+        //     if (filled) {
+        //         average = cost / filled;
+        //     }
+        //     if (this.options['parseOrderToPrecision']) {
+        //         cost = parseFloat (this.costToPrecision (symbol, cost));
+        //     }
+        // }
         return {
             'id': id,
             'timestamp': timestamp,
@@ -636,12 +635,11 @@ module.exports = class binance extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
-            'trades': trades,
+            'fee': 0,
+            'trades': [],
         };
     }
 
@@ -732,7 +730,7 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
 
-        const response = await this.privateGetAllOrders (this.extend (request, params));
+        const response = await this.v3privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
