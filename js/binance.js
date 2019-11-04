@@ -720,6 +720,7 @@ module.exports = class binance extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        console.log(symbol);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
