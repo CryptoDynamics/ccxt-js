@@ -552,6 +552,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        console.log(order);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
@@ -562,7 +563,7 @@ module.exports = class binance extends Exchange {
         }
         let price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'origQty');
-        const filled = this.safeFloat (order, 'executedQty');
+        const filled = Number(order['executedQty']);
         let remaining = undefined;
         let cost = this.safeFloat (order, 'cummulativeQuoteQty');
         if (filled !== undefined) {
@@ -720,7 +721,6 @@ module.exports = class binance extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        console.log(symbol);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -732,7 +732,7 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
 
-        const response = await this.v3privateGetAllOrders (this.extend (request, params));
+        const response = await this.privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
