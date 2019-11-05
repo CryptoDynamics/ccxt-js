@@ -352,8 +352,6 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchWalletBalance(){
-        const walletPattern = {available: 0, on_orders: 0, total:0};
-        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
         let balances = {};
 
         const response = await this.privateGetAccount();

@@ -612,19 +612,20 @@ module.exports = class bitfinex extends Exchange {
         return offers;
     }
 
-    async fetchOpenLoans (symbol) {
+    async fetchOpenLoans (symbol=undefined) {
         await this.loadMarkets ();
         const response = await this.privatePostOffers ();
         const offers = [];
         symbol = this.currencyId(symbol);
         response.forEach ((offer) => {
-            if (offer['currency'] === symbol && !offer['is_cancelled']) {
+            let currency = this.commonCurrencyCode(offer['currency']);
+            if (currency === symbol || symbol === undefined) {
                 offers.push ({
                     'id': offer['id'],
-                    'symbol': this.commonCurrencyCode(offer['currency']),
-                    'rate': parseFloat (offer['rate']) / 365 / 100,
-                    'amount': parseFloat (offer['original_amount']),
-                    'duration': parseFloat (offer['period']),
+                    'symbol': currency,
+                    'rate': Number (offer['rate']) / 365 / 100,
+                    'amount': Number (offer['original_amount']),
+                    'duration': Number (offer['period']),
                     'date': parseInt (offer['timestamp'])
                 });
             }
@@ -632,12 +633,12 @@ module.exports = class bitfinex extends Exchange {
         return offers;
     }
 
-    async fetchActiveLoans (symbol) {
+    async fetchActiveLoans (symbol=undefined) {
         const response = await this.privatePostCredits ();
         const offers = [];
         response.forEach ((offer) => {
             let currency = this.commonCurrencyCode(offer['currency']);
-            if (symbol === currency)
+            if (symbol === currency || symbol === undefined)
                 offers.push ({
                     'id': offer['id'],
                     'symbol': currency,

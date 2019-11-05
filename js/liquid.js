@@ -295,8 +295,6 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchWalletBalance(){
-        const walletPattern = {available: 0, on_orders: 0, total:0};
-        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
         let balances = {};
 
         const total = await this.privateGetAccountsBalance();
@@ -443,8 +441,10 @@ module.exports = class liquid extends Exchange {
         return offers;
     }
 
-    async fetchOpenLoans (symbol) {
-        let response = await this.privateGetLoanBids(this.extend({currency: this.currencyId(symbol)}));
+    async fetchOpenLoans (symbol=undefined) {
+        let request = {};
+        if (symbol) request['currency'] = this.currencyId(symbol);
+        let response = await this.privateGetLoanBids(this.extend(request));
         let offers = [];
         for (let offer of response['models']){
             offers.push({
@@ -457,7 +457,6 @@ module.exports = class liquid extends Exchange {
             });
         }
         return offers;
-
     }
 
     async fetchActiveLoans (symbol) {
