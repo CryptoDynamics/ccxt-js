@@ -285,6 +285,15 @@ module.exports = class liquid extends Exchange {
         return this.parseBalance (result);
     }
 
+    initSymbol(symbol, balances){
+        if (symbol in balances) return;
+        balances[symbol] = {
+            exchange: {available: 0, on_orders: 0, total:0},
+            margin: {available: 0, on_orders: 0, total:0},
+            lending: {available: 0, on_orders: 0, total:0}
+        };
+    }
+
     async fetchWalletBalance(){
         const walletPattern = {available: 0, on_orders: 0, total:0};
         const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
@@ -294,7 +303,7 @@ module.exports = class liquid extends Exchange {
 
         for (let dep of total){
             let currency = this.commonCurrencyCode(dep.currency);
-            if (!(currency in balances)) balances[currency] = sectionPattern;
+            this.initSymbol(currency, balances);
 
             let openLoans = await this.fetchOpenLoans(dep.currency);
             let activeLoans = await this.fetchActiveLoans(dep.currency);

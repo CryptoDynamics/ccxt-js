@@ -342,6 +342,15 @@ module.exports = class binance extends Exchange {
         return this.parseBalance (result);
     }
 
+    initSymbol(symbol, balances){
+        if (symbol in balances) return;
+        balances[symbol] = {
+            exchange: {available: 0, on_orders: 0, total:0},
+            margin: {available: 0, on_orders: 0, total:0},
+            lending: {available: 0, on_orders: 0, total:0}
+        };
+    }
+
     async fetchWalletBalance(){
         const walletPattern = {available: 0, on_orders: 0, total:0};
         const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
@@ -351,10 +360,10 @@ module.exports = class binance extends Exchange {
 
         let account = response.balances;
         account.forEach(balance => {
-            let currency = this.commonCurrencyCode(balance.asset);
-            if (!(currency in balances)) balances[currency] = sectionPattern;
             let total = Number(balance.free) + Number(balance.locked);
             if (total === 0) return;
+            let currency = this.commonCurrencyCode(balance.asset);
+            this.initSymbol(currency, balances);
             balances[currency].exchange.available = Number(balance.free);
             balances[currency].exchange.on_orders = Number(balance.locked);
             balances[currency].exchange.total = total;

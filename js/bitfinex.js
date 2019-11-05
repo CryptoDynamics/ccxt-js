@@ -557,17 +557,23 @@ module.exports = class bitfinex extends Exchange {
         }
     }
 
+    initSymbol(symbol, balances){
+        if (symbol in balances) return;
+        balances[symbol] = {
+          exchange: {available: 0, on_orders: 0, total:0},
+          margin: {available: 0, on_orders: 0, total:0},
+          lending: {available: 0, on_orders: 0, total:0}
+        };
+    }
+
     async fetchWalletBalance () {
         const response = await this.privatePostBalances();
-
-        const walletPattern = {available: 0, on_orders: 0, total:0};
-        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
         let balances = {};
 
         response.forEach(balance => {
             if (parseFloat (balance.amount) !== 0) {
                 let currency = this.commonCurrencyCode(balance.currency.toUpperCase());
-                if (!(currency in balances)) balances[currency] = sectionPattern;
+                this.initSymbol(currency, balances);
                 let type = this.parseWalletType(balance.type);
                 balances[currency][type].available = Number(balance.available);
                 balances[currency][type].on_orders = Number(balance.amount) - Number(balance.available);

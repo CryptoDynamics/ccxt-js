@@ -304,6 +304,15 @@ module.exports = class poloniex extends Exchange {
         return this.parseBalance (result);
     }
 
+    initSymbol(symbol, balances){
+        if (symbol in balances) return;
+        balances[symbol] = {
+            exchange: {available: 0, on_orders: 0, total:0},
+            margin: {available: 0, on_orders: 0, total:0},
+            lending: {available: 0, on_orders: 0, total:0}
+        };
+    }
+
     async fetchWalletBalance () {
         const walletPattern = {available: 0, on_orders: 0, total:0};
         const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
@@ -314,7 +323,7 @@ module.exports = class poloniex extends Exchange {
         Object.keys(available).forEach(wallet => {
            Object.keys(available[wallet]).forEach(symbol => {
                let currency = this.commonCurrencyCode(symbol);
-               if (!(currency in balances)) balances[currency] = sectionPattern;
+               this.initSymbol(currency, balances);
                balances[currency][wallet].available += Number(available[wallet][symbol]);
            });
         });
@@ -324,7 +333,7 @@ module.exports = class poloniex extends Exchange {
         Object.keys(openOrdersBalances).forEach(symbol => {
             if (openOrdersBalances[symbol]['onOrders'] === 0) return;
             let currency = this.commonCurrencyCode(symbol);
-            if (!(currency in balances)) balances[currency] = sectionPattern;
+            this.initSymbol(currency, balances);
             balances[currency]['exchange'].on_orders += Number(openOrdersBalances[symbol]['onOrders']);
         });
 
@@ -333,7 +342,7 @@ module.exports = class poloniex extends Exchange {
         let active_loans = await this.fetchActiveLoans();
         const loans = open_loans.concat(active_loans);
         loans.forEach(offer => {
-            if (!(offer.symbol in balances)) balances[offer.symbol] = sectionPattern;
+            this.initSymbol(offer.symbol, balances);
             balances[offer.symbol]['lending']['on_orders'] += Number(offer.amount);
         });
 
