@@ -445,15 +445,16 @@ module.exports = class liquid extends Exchange {
         let response = await this.privateGetLoanBids(this.extend(request));
         let offers = [];
         for (let offer of response['models']){
-            if (offer['status'] !== 'live') continue;
-            offers.push({
-                'id': offer['id'],
-                'symbol': symbol,
-                'rate': Number(offer['rate']),
-                'amount': Number (offer['quantity']),
-                'duration': 0,
-                'date': this.milliseconds()
-            });
+            if (offer['status'] === 'open') {
+                offers.push({
+                    'id': offer['id'],
+                    'symbol': symbol,
+                    'rate': Number(offer['rate']),
+                    'amount': Number(offer['quantity']),
+                    'duration': 0,
+                    'date': this.milliseconds()
+                });
+            }
         }
         return offers;
     }
