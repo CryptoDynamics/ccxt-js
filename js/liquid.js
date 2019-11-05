@@ -300,6 +300,7 @@ module.exports = class liquid extends Exchange {
         const total = await this.privateGetAccountsBalance();
 
         for (let dep of total){
+            if (Number(dep.balance) === 0) continue;
             let currency = this.commonCurrencyCode(dep.currency);
             this.initSymbol(currency, balances);
 
@@ -417,16 +418,13 @@ module.exports = class liquid extends Exchange {
         await this.loadMarkets ();
         let symbols = [];
         let lending_symbols = ['BTC', 'ETH', 'XRP', 'USD', 'EUR', 'SGD', 'HKD', 'AUD', 'JPY', 'PHP'];
-        lending_symbols.forEach(symbol => {
-            symbols.push(this.commonCurrencyCode(symbol));
-        });
-        return symbols;
+        return lending_symbols;
     }
 
     async fetchLoanBook (symbol, count = 1) {
         await this.loadMarkets ();
         const response = await this.publicGetIrLaddersCurrency(this.extend ({
-            'currency': this.currencyId(symbol)
+            'currency': symbol
         }));
         const offers = [];
         if (!('bids' in response)) return offers;
@@ -443,13 +441,14 @@ module.exports = class liquid extends Exchange {
 
     async fetchOpenLoans (symbol=undefined) {
         let request = {};
-        if (symbol) request['currency'] = this.currencyId(symbol);
+        if (symbol) request['currency'] = symbol;
         let response = await this.privateGetLoanBids(this.extend(request));
         let offers = [];
         for (let offer of response['models']){
+            if (offer['status'] !== 'live') continue;
             offers.push({
                 'id': offer['id'],
-                'symbol': this.commonCurrencyCode(symbol),
+                'symbol': symbol,
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['quantity']),
                 'duration': 0,
@@ -460,12 +459,12 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchActiveLoans (symbol) {
-        let response = await this.privateGetLoans(this.extend({currency: this.currencyId(symbol)}));
+        let response = await this.privateGetLoans(this.extend({currency: symbol}));
         let offers = [];
         for (let offer of response['models']){
             offers.push({
                 'id': offer['id'],
-                'symbol': this.commonCurrencyCode(symbol),
+                'symbol': symbol,
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['quantity']),
                 'duration': 0,
