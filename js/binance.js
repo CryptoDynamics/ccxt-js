@@ -343,24 +343,23 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchWalletBalance(){
-        let wallets = {'exchange': {}, 'margin': {}, 'lending': {}};
+        const walletPattern = {available: 0, on_orders: 0, total:0};
+        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
+        let balances = {};
+
         const response = await this.privateGetAccount();
 
-        let balances = response.balances;
-        // return balances;
-        balances.forEach(balance => {
-            let currencyId = this.commonCurrencyCode(balance.asset);
+        let account = response.balances;
+        account.forEach(balance => {
+            let currency = this.commonCurrencyCode(balance.asset);
+            if (!(currency in balances)) balances[currency] = sectionPattern;
             let total = Number(balance.free) + Number(balance.locked);
             if (total === 0) return;
-
-            wallets.exchange[currencyId] = {
-                available: Number(balance.free),
-                on_orders: Number(balance.locked),
-                total: total
-            };
+            balances[currency].exchange.available = Number(balance.free);
+            balances[currency].exchange.on_orders = Number(balance.locked);
+            balances[currency].exchange.total = total;
         });
-
-        return wallets;
+        return balances;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

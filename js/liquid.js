@@ -286,40 +286,29 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchWalletBalance(){
-        let wallets = {exchange:{}, margin:{}, lending:{}};
-        let total = await this.privateGetAccountsBalance();
+        const walletPattern = {available: 0, on_orders: 0, total:0};
+        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
+        let balances = {};
+
+        const total = await this.privateGetAccountsBalance();
 
         for (let dep of total){
-            // if (Number(dep.balance) === 0) return;
-            wallets.exchange[dep.currency] = {available: 0, on_orders: 0, total: 0};
-            wallets.margin[dep.currency] = {available: 0, on_orders: 0, total: 0};
-            wallets.lending[dep.currency] = {available: 0, on_orders: 0, total: 0};
+            let currency = this.commonCurrencyCode(dep.currency);
+            if (!(currency in balances)) balances[currency] = sectionPattern;
 
             let openLoans = await this.fetchOpenLoans(dep.currency);
             let activeLoans = await this.fetchActiveLoans(dep.currency);
+            const loans = openLoans.concat(activeLoans);
             let onorders = 0;
 
-            openLoans.forEach(loan => {
+            loans.forEach(loan => {
                 onorders += Number(loan.amount);
             });
-            activeLoans.forEach(loan => {
-                onorders += Number(loan.amount);
-            });
-
-            // wallets.exchange[dep.currency].available = Number(dep.balance);
-            // wallets.margin[dep.currency].available = wallets.exchange[dep.currency].available;
-            wallets.lending[dep.currency].available = Number(dep.balance);
-
-            // wallets.exchange[dep.currency].on_orders = onorders;
-            // wallets.margin[dep.currency].on_orders = onorders;
-            wallets.lending[dep.currency].on_orders = onorders;
-
-            // wallets.exchange[dep.currency].total = wallets.exchange[dep.currency].available + wallets.exchange[dep.currency].on_orders;
-            // wallets.margin[dep.currency].total = wallets.margin[dep.currency].available + wallets.margin[dep.currency].on_orders;
-            wallets.lending[dep.currency].total = wallets.lending[dep.currency].available + wallets.lending[dep.currency].on_orders;
+            balances[currency]['lending'].available = Number(dep.balance);
+            balances[currency]['lending'].on_orders = onorders;
+            balances[currency]['lending'].total = Number(dep.balance) + onorders;
         }
-        // console.log(wallets);
-        return wallets;
+        return balances;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -446,7 +435,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchOpenLoans (symbol) {
-        let response = await this.privateGetLoanBids(this.extend({currency: symbol}));
+        let response = await this.privateGetLoanBids(this.extend({currency: this.currencyId(symbol)}));
         let offers = [];
         for (let offer of response['models']){
             offers.push({
@@ -455,7 +444,7 @@ module.exports = class liquid extends Exchange {
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['quantity']),
                 'duration': 0,
-                'date': this.milliseconds() / 1000
+                'date': this.milliseconds()
             });
         }
         return offers;
@@ -472,7 +461,7 @@ module.exports = class liquid extends Exchange {
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['quantity']),
                 'duration': 0,
-                'date': this.milliseconds() / 1000
+                'date': this.milliseconds()
             });
         }
         return offers;

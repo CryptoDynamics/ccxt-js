@@ -305,72 +305,57 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchWalletBalance () {
+        const walletPattern = {available: 0, on_orders: 0, total:0};
+        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
+        let balances = {};
+
+        //calc available
         const available = await this.privatePostReturnAvailableAccountBalances();
+        Object.keys(available).forEach(wallet => {
+           Object.keys(available[wallet]).forEach(symbol => {
+               let currency = this.commonCurrencyCode(symbol);
+               if (!(currency in balances)) balances[currency] = sectionPattern;
+               balances[currency][wallet].available += Number(available[wallet][symbol]);
+           });
+        });
 
-        let wallets = {'exchange': {}, 'margin': {}, 'lending': {}};
-        let on_orders = {'exchange': {}, 'margin': {}, 'lending': {}};
+        //calc on_orders in exchange
+        const openOrdersBalances = await this.privatePostReturnCompleteBalances();
+        Object.keys(openOrdersBalances).forEach(symbol => {
+            if (openOrdersBalances[symbol]['onOrders'] === 0) return;
+            let currency = this.commonCurrencyCode(symbol);
+            if (!(currency in balances)) balances[currency] = sectionPattern;
+            balances[currency]['exchange'].on_orders += Number(openOrdersBalances[symbol]['onOrders']);
+        });
 
-
-        let open_orders = await this.fetchOpenOrders();
+        //calc on_orders in lending
         let open_loans = await this.fetchOpenLoans();
         let active_loans = await this.fetchActiveLoans();
-
-        open_orders.forEach(order => {
-            let symbol = '';
-            let amount = 0;
-            if (order.side === 'sell'){
-                symbol = order.symbol.split('/')[0];
-                amount = Number(order.amount);
-            }else {
-                symbol = order.symbol.split('/')[1];
-                amount = Number(order.amount) * Number(order.price);
-            }
-
-            if (symbol in on_orders['exchange'])
-                on_orders['exchange'][symbol] += amount;
-            else
-                on_orders['exchange'][symbol] = amount;
+        const loans = open_loans.concat(active_loans);
+        loans.forEach(offer => {
+            if (!(offer.symbol in balances)) balances[offer.symbol] = sectionPattern;
+            balances[offer.symbol]['lending']['on_orders'] += Number(offer.amount);
         });
 
-        active_loans.forEach(loan => {
-            if (loan.symbol in on_orders['lending']){
-                on_orders['lending'][loan.symbol] += loan.amount;
-            }else{
-                on_orders['lending'][loan.symbol] = loan.amount;
-            }
-        });
-
-        open_loans.forEach(loan => {
-            if (loan.symbol in on_orders['lending']){
-                on_orders['lending'][loan.symbol] += loan.amount;
-            }else{
-                on_orders['lending'][loan.symbol] = loan.amount;
-            }
-        });
-
-        Object.keys (available).forEach ( wallet => {
-            Object.keys (available[wallet]).forEach ( symbol => {
-                let symbolCode = this.commonCurrencyCode(symbol);
-                if (!(symbolCode in wallets[wallet])){
-                    wallets[wallet][symbolCode] = {available: 0, on_orders: 0, total: 0};
-                }
-                wallets[wallet][symbolCode].available = Number(available[wallet][symbol]);
-                wallets[wallet][symbolCode].total += Number(wallets[wallet][symbolCode].available);
+        //calc total
+        Object.keys(balances).forEach(symbol => {
+            Object.keys(balances[symbol]).forEach(wallet => {
+                balances[symbol][wallet].total = balances[symbol][wallet].available + balances[symbol][wallet].on_orders;
             });
         });
+        return balances;
 
-        Object.keys (on_orders).forEach ( wallet => {
-            Object.keys(on_orders[wallet]).forEach(symbol => {
-                let symbolCode = this.commonCurrencyCode(symbol);
-                if (!(symbolCode in wallets[wallet])) {
-                    wallets[wallet][symbolCode] = {available: 0, on_orders: 0, total: 0};
-                }
-                wallets[wallet][symbolCode].on_orders = on_orders[wallet][symbol];
-                wallets[wallet][symbolCode].total += wallets[wallet][symbolCode].on_orders;
-            });
-        });
+        // open_orders.forEach(order => {
+        //     let symbol = '';
+        //     let amount = 0;
+        //     if (order.side === 'sell'){
+        //         symbol = order.symbol.split('/')[0];
+        //         amount = Number(order.amount);
+        //     }else {
+        //         symbol = order.symbol.split('/')[1];
+        //         amount = Number(order.amount) * Number(order.price);
+        //     }
 
-        return wallets;
     }
 
     async fetchLoanBook (symbol, count = 1) {
@@ -385,57 +370,62 @@ module.exports = class poloniex extends Exchange {
                 return false;
             }
             offers.push ({
-                'rate': parseFloat (offer['rate']),
-                'amount': parseFloat (offer['amount']),
+                'rate': Number(offer['rate']),
+                'amount': Number(offer['amount']),
             });
         });
         return offers;
     }
 
-    async fetchLoanBooks(count = 1){
-        let symbols = await this.fetchLendingSymbols();
-        let books = {};
-        for (let i = 0; i < symbols.length; i++){
-            books[symbols[i]] = await this.fetchLoanBook(symbols[i], count);
-        }
-        return books;
-    }
-
-    async fetchOpenLoans (symbol) {
+    async fetchOpenLoans (symbol=undefined) {
         await this.loadMarkets ();
         const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': this.currencyId(symbol)}));
 
         let offers = [];
-        if (!(symbol in response)) {
-            return offers;
+
+        if (symbol === undefined) {
+            Object.keys(response).forEach(symbol => {
+                offers = offers.concat(this.parseOpenLoans(symbol, response[symbol]));
+            });
+        }else{
+            if (this.currencyId(symbol) in response){
+                offers = offers.concat(this.parseOpenLoans(symbol, response[symbol]));
+            }
         }
-        response[symbol].forEach (offer => {
+        return offers;
+    }
+
+    parseOpenLoans(symbol, symbolOpenLoans){
+        let offers = [];
+        symbolOpenLoans.forEach(offer => {
             offers.push({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(symbol),
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['amount']),
                 'duration': Number (offer['duration']),
-                'date': Date.parse(offer['date']) / 1000
+                'date': Date.parse(offer['date'])
             });
         });
         return offers;
     }
 
-    async fetchActiveLoans (symbol) {
-        const response = await this.privatePostReturnActiveLoans ();
+    async fetchActiveLoans (symbol=undefined) {
+        const response = await this.privatePostReturnActiveLoans();
         const offers = [];
         response['provided'].forEach (offer => {
             let currency =  this.commonCurrencyCode(offer['currency']);
-            if (symbol === currency)
-                offers.push ({
+            let filter = (symbol === undefined || currency === symbol);
+            if (filter) {
+                offers.push({
                     'id': offer['id'],
                     'symbol': currency,
                     'rate': Number(offer['rate']),
                     'amount': Number(offer['amount']),
                     'duration': Number(offer['duration']),
-                    'date': Date.parse (offer['date']) / 1000
+                    'date': Date.parse(offer['date'])
                 });
+            }
         });
         return offers;
     }
@@ -450,12 +440,12 @@ module.exports = class poloniex extends Exchange {
             offers.push ({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
-                'rate': parseFloat (offer['rate']),
-                'amount': parseFloat (offer['amount']),
-                'duration': parseFloat (offer['duration']),
+                'rate': Number(offer['rate']),
+                'amount': Number (offer['amount']),
+                'duration': Number (offer['duration']),
                 'earned': earn - fee,
                 'fee_asc': fee,
-                'date': Date.parse (offer['close']) / 1000
+                'date': Date.parse (offer['close'])
             });
         });
         return offers;

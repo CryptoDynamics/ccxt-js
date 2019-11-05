@@ -546,36 +546,35 @@ module.exports = class bitfinex extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseWalletType (wallet) {
+        switch (wallet) {
+            case 'exchange':
+                return 'exchange';
+            case 'deposit':
+                return 'lending';
+            case 'trading':
+                return 'margin';
+        }
+    }
+
     async fetchWalletBalance () {
         const response = await this.privatePostBalances();
 
-        let wallets = { 'exchange': {}, 'margin': {}, 'lending': {}};
+        const walletPattern = {available: 0, on_orders: 0, total:0};
+        const sectionPattern = { 'exchange': walletPattern, 'margin': walletPattern, 'lending': walletPattern};
+        let balances = {};
+
         response.forEach(balance => {
             if (parseFloat (balance.amount) !== 0) {
                 let currency = this.commonCurrencyCode(balance.currency.toUpperCase());
-                switch (balance.type) {
-                    case 'exchange':
-                        wallets.exchange[currency] = {};
-                        wallets.exchange[currency]['available'] = parseFloat(balance.available);
-                        wallets.exchange[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
-                        wallets.exchange[currency]['total'] = parseFloat(balance.amount);
-                        break;
-                    case 'trading':
-                        wallets.margin[currency] = {};
-                        wallets.margin[currency]['available'] = parseFloat(balance.available);
-                        wallets.margin[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
-                        wallets.margin[currency]['total'] = parseFloat(balance.amount);
-                        break;
-                    case 'deposit':
-                        wallets.lending[currency] = {};
-                        wallets.lending[currency]['available'] = parseFloat(balance.available);
-                        wallets.lending[currency]['on_orders'] = parseFloat(balance.amount - balance.available);
-                        wallets.lending[currency]['total'] = parseFloat(balance.amount);
-                        break;
-                }
+                if (!(currency in balances)) balances[currency] = sectionPattern;
+                let type = this.parseWalletType(balance.type);
+                balances[currency][type].available = Number(balance.available);
+                balances[currency][type].on_orders = Number(balance.amount) - Number(balance.available);
+                balances[currency][type].total = Number(balance.amount);
             }
         });
-        return wallets;
+        return balances;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
