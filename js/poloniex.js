@@ -322,8 +322,6 @@ module.exports = class poloniex extends Exchange {
         const available = await this.privatePostReturnAvailableAccountBalances();
         Object.keys(available).forEach(wallet => {
            Object.keys(available[wallet]).forEach(symbol => {
-               let available = Number(available[wallet][symbol]);
-               if (available === 0) return;
                let currency = this.commonCurrencyCode(symbol);
                this.initSymbol(currency, balances);
                balances[currency][wallet].available += available;
