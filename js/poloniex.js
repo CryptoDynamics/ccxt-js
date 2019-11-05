@@ -322,19 +322,22 @@ module.exports = class poloniex extends Exchange {
         const available = await this.privatePostReturnAvailableAccountBalances();
         Object.keys(available).forEach(wallet => {
            Object.keys(available[wallet]).forEach(symbol => {
+               let available = Number(available[wallet][symbol]);
+               if (available === 0) return;
                let currency = this.commonCurrencyCode(symbol);
                this.initSymbol(currency, balances);
-               balances[currency][wallet].available += Number(available[wallet][symbol]);
+               balances[currency][wallet].available += available;
            });
         });
 
         //calc on_orders in exchange
         const openOrdersBalances = await this.privatePostReturnCompleteBalances();
         Object.keys(openOrdersBalances).forEach(symbol => {
-            if (openOrdersBalances[symbol]['onOrders'] === 0) return;
+            let onOrders = Number(openOrdersBalances[symbol]['onOrders']);
+            if (onOrders === 0) return;
             let currency = this.commonCurrencyCode(symbol);
             this.initSymbol(currency, balances);
-            balances[currency]['exchange'].on_orders += Number(openOrdersBalances[symbol]['onOrders']);
+            balances[currency]['exchange'].on_orders += onOrders;
         });
 
         //calc on_orders in lending
