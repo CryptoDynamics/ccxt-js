@@ -482,7 +482,7 @@ module.exports = class liquid extends Exchange {
             rate: Number(response.rate),
             duration: Number(duration),
             renew: Number(renew),
-            date: Math.round(Date.now() / 1000)
+            date: Math.round(Date.now())
         };
     }
 
@@ -491,7 +491,7 @@ module.exports = class liquid extends Exchange {
             id: id
         }));
         return {
-            date: Math.round(Date.now() / 1000),
+            date: Math.round(Date.now()),
             amount: Number(response.quantity) - Number(response.filled_quantity)
         };
     }
