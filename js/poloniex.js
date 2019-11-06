@@ -387,7 +387,8 @@ module.exports = class poloniex extends Exchange {
 
     async fetchOpenLoans (symbol=undefined) {
         await this.loadMarkets ();
-        const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': this.currencyId(symbol)}));
+        let currency = this.currencyId(symbol);
+        const response = await this.privatePostReturnOpenLoanOffers(this.extend({'currency': currency}));
 
         let offers = [];
 
@@ -396,8 +397,8 @@ module.exports = class poloniex extends Exchange {
                 offers = offers.concat(this.parseOpenLoans(symbol, response[symbol]));
             });
         }else{
-            if (this.currencyId(symbol) in response){
-                offers = offers.concat(this.parseOpenLoans(symbol, response[symbol]));
+            if (currency in response){
+                offers = offers.concat(this.parseOpenLoans(currency, response[currency]));
             }
         }
         return offers;
