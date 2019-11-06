@@ -378,7 +378,7 @@ module.exports = class poloniex extends Exchange {
                 return false;
             }
             offers.push ({
-                'rate': Number(offer['rate']),
+                'rate': Number(offer['rate']) / 100,
                 'amount': Number(offer['amount']),
             });
         });
@@ -409,7 +409,7 @@ module.exports = class poloniex extends Exchange {
             offers.push({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(symbol),
-                'rate': Number(offer['rate']),
+                'rate': Number(offer['rate']) / 100,
                 'amount': Number (offer['amount']),
                 'duration': Number (offer['duration']),
                 'date': Date.parse(offer['date'])
@@ -428,7 +428,7 @@ module.exports = class poloniex extends Exchange {
                 offers.push({
                     'id': offer['id'],
                     'symbol': currency,
-                    'rate': Number(offer['rate']),
+                    'rate': Number(offer['rate']) / 100,
                     'amount': Number(offer['amount']),
                     'duration': Number(offer['duration']),
                     'date': Date.parse(offer['date'])
@@ -448,7 +448,7 @@ module.exports = class poloniex extends Exchange {
             offers.push ({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
-                'rate': Number(offer['rate']),
+                'rate': Number(offer['rate']) / 100,
                 'amount': Number (offer['amount']),
                 'duration': Number (offer['duration']),
                 'earned': earn - fee,
@@ -466,7 +466,7 @@ module.exports = class poloniex extends Exchange {
             'amount': amount,
             'duration': duration,
             'autoRenew': renew,
-            'lendingRate': rate,
+            'lendingRate': rate * 100,
         }, params));
         if (response.success)
             return {
@@ -476,14 +476,14 @@ module.exports = class poloniex extends Exchange {
                 rate: Number(rate),
                 duration: Number(duration),
                 renew: Number(renew),
-                date: Math.round(Date.now() / 1000)
+                date: Math.round(Date.now())
             };
     }
 
     async cancelLoanOrder (id, params = {}) {
-        let response = await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': id}, params));
+        let response = await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': parseInt(id)}, params));
         return {
-            date: Math.round(Date.now() / 1000),
+            date: Math.round(Date.now()),
             amount: response.amount
         };
     }

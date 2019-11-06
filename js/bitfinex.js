@@ -690,7 +690,7 @@ module.exports = class bitfinex extends Exchange {
             rate: Number(rate),
             duration: Number(duration),
             renew: Number(renew),
-            date: Math.round(Date.now() / 1000)
+            date: Date.now()
         };
     }
 
@@ -698,7 +698,7 @@ module.exports = class bitfinex extends Exchange {
         let response = await this.privatePostOfferCancel (this.extend ({ 'offer_id': parseInt (id) }, params));
 
         return {
-            date: Math.round(Date.now() / 1000),
+            date: Date.now(),
             amount: response.remaining_amount
         };
     }
