@@ -605,8 +605,8 @@ module.exports = class bitfinex extends Exchange {
         const offers = [];
         response.asks.forEach ((offer) => {
             offers.push ({
-                'rate': parseFloat (offer['rate']) / 365 / 100,
-                'amount': parseFloat (offer['amount'])
+                'rate': Number (offer['rate']) / 365 / 100,
+                'amount': Number (offer['amount'])
             });
         });
         return offers;
@@ -672,21 +672,22 @@ module.exports = class bitfinex extends Exchange {
         return offers;
     }
 
+
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         await this.loadMarkets ();
-        rate = rate * 100;
+
         const response = await this.privatePostOfferNew (this.extend ({
             'currency': this.currencyId(symbol),
             'amount': this.numberToString (amount),
             'period': parseInt (duration),
-            'rate':  this.numberToString (rate),
+            'rate':  this.numberToString (rate * 100 * 365),
             'direction': 'lend',
             'renew': renew }, params));
         return {
             id: response['id'],
             symbol: symbol,
             amount: Number(amount),
-            rate: Number(rate),
+            rate: Number(rate) * 365 * 100,
             duration: Number(duration),
             renew: Number(renew),
             date: Math.round(Date.now() / 1000)
