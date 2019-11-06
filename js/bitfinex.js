@@ -687,7 +687,7 @@ module.exports = class bitfinex extends Exchange {
             id: response['id'],
             symbol: symbol,
             amount: Number(amount),
-            rate: Number(rate) * 365 * 100,
+            rate: Number(rate),
             duration: Number(duration),
             renew: Number(renew),
             date: Math.round(Date.now() / 1000)
