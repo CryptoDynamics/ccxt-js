@@ -301,7 +301,7 @@ module.exports = class liquid extends Exchange {
 
         for (let dep of total){
             if (Number(dep.balance) === 0) continue;
-            let currency = this.commonCurrencyCode(dep.currency);
+            let currency = dep.currency;
             this.initSymbol(currency, balances);
 
             let openLoans = await this.fetchOpenLoans(dep.currency);
@@ -461,14 +461,15 @@ module.exports = class liquid extends Exchange {
         let response = await this.privateGetLoans(this.extend({currency: symbol}));
         let offers = [];
         for (let offer of response['models']){
-            offers.push({
-                'id': offer['id'],
-                'symbol': offer['currency'],
-                'rate': Number(offer['rate']) / 100,
-                'amount': Number (offer['quantity']),
-                'duration': 0,
-                'date': this.milliseconds()
-            });
+            if (offer['status'] === 'open')
+                offers.push({
+                    'id': offer['id'],
+                    'symbol': offer['currency'],
+                    'rate': Number(offer['rate']) / 100,
+                    'amount': Number (offer['quantity']),
+                    'duration': 0,
+                    'date': this.milliseconds()
+                });
         }
         return offers;
     }
