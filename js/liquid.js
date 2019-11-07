@@ -416,9 +416,7 @@ module.exports = class liquid extends Exchange {
     //
     async fetchLendingSymbols(){
         await this.loadMarkets ();
-        let symbols = [];
-        let lending_symbols = ['BTC', 'ETH', 'XRP', 'USD', 'EUR', 'SGD', 'HKD', 'AUD', 'JPY', 'PHP'];
-        return lending_symbols;
+        return ['BTC', 'ETH', 'XRP', 'USD', 'EUR', 'SGD', 'HKD', 'AUD', 'JPY', 'PHP'];
     }
 
     async fetchLoanBook (symbol, count = 1) {
@@ -432,7 +430,7 @@ module.exports = class liquid extends Exchange {
             if (offers.length >= count) return false;
 
             offers.push ({
-                'rate': Number(offer[0]),
+                'rate': Number(offer[0]) / 100,
                 'amount': Number(offer[1]),
             });
         });
@@ -445,11 +443,11 @@ module.exports = class liquid extends Exchange {
         let response = await this.privateGetLoanBids(this.extend(request));
         let offers = [];
         for (let offer of response['models']){
-            if (offer['status'] === 'open') {
+            if (offer['status'] === 'live' && (symbol === undefined || offer['currency'] === symbol)) {
                 offers.push({
                     'id': offer['id'],
-                    'symbol': symbol,
-                    'rate': Number(offer['rate']),
+                    'symbol': offer['currency'],
+                    'rate': Number(offer['rate']) / 100,
                     'amount': Number(offer['quantity']),
                     'duration': 0,
                     'date': this.milliseconds()
@@ -465,8 +463,8 @@ module.exports = class liquid extends Exchange {
         for (let offer of response['models']){
             offers.push({
                 'id': offer['id'],
-                'symbol': symbol,
-                'rate': Number(offer['rate']),
+                'symbol': offer['currency'],
+                'rate': Number(offer['rate']) / 100,
                 'amount': Number (offer['quantity']),
                 'duration': 0,
                 'date': this.milliseconds()
@@ -476,18 +474,33 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchLoansHistory(start, end){
-        return [];
+        let response = await this.privateGetLoanBids(this.extend({}));
+        let offers = [];
+        for (let offer of response['models']){
+            if (offer['status'] === 'filled') {
+                offers.push({
+                    'id': offer['id'],
+                    'symbol': offer['currency'],
+                    'rate': Number(offer['rate']) / 100,
+                    'amount': Number(offer['quantity']),
+                    'duration': 0,
+                    'date': this.milliseconds()
+                });
+            }
+        }
+        return offers;
     }
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         await this.loadMarkets();
-        const request = {currency: this.currencyId(symbol), quantity: amount, rate: rate};
+        const request = {currency: symbol, quantity: amount, rate: rate};
         let response = await this.privatePostLoanBids(this.extend(request));
+        if (renew === 0) await this.privatePutLoans(this.extend({id: response.id, fund_reloaned: false}));
         return {
             id: response.id,
             symbol: symbol,
             amount: Number(amount),
-            rate: Number(response.rate),
+            rate: Number(response.rate) * 100,
             duration: Number(duration),
             renew: Number(renew),
             date: Date.now()
