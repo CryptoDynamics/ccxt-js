@@ -537,8 +537,9 @@ module.exports = class liquid extends Exchange {
     }
 
     async transferBalance (symbol, amount, from, to) {
-        return {};
+        throw new ExchangeError('Unsupported');
     }
+
 
     parseTrade (trade, market) {
         // {             id:  12345,
