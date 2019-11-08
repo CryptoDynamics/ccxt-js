@@ -299,36 +299,37 @@ module.exports = class livecoin extends Exchange {
         return this.parseBalance (result);
     }
 
+    initSymbol(symbol, balances){
+        if (symbol in balances) return;
+        balances[symbol] = {
+            exchange: {available: 0, on_orders: 0, total:0},
+            margin: {available: 0, on_orders: 0, total:0},
+            lending: {available: 0, on_orders: 0, total:0}
+        };
+    }
 
     async fetchWalletBalance (){
         await this.loadMarkets ();
-        let wallets = {exchange: {}, margin: {}, lending: {}};
         const response = await this.privateGetPaymentBalances ();
         let balances = {};
         for (let balance of response) {
             const currencyId = this.safeString(balance, 'currency');
-            const code = this.commonCurrencyCode(currencyId);
-            if (!(code in balances))
-                balances[code] = {available: 0, on_orders: 0, total: 0};
+            const currency = this.commonCurrencyCode(currencyId);
+            if (!(currency in balances)) this.initSymbol(currency, balances);
             switch (balance.type) {
                 case 'total':
-                    balances[code].total = this.safeFloat(balance, 'value');
+                    balances[currency].exchange.total = this.safeFloat(balance, 'value');
                     break;
                 case 'available':
-                    balances[code].available = this.safeFloat(balance, 'value');
+                    balances[currency].exchange.available = this.safeFloat(balance, 'value');
                     break;
                 case 'trade':
-                    balances[code].on_orders = this.safeFloat(balance, 'value');
+                    balances[currency].exchange.on_orders = this.safeFloat(balance, 'value');
                     break;
             }
         }
-        Object.keys(balances).forEach(symbol => {
-            if (Number(balances[symbol].total) !== 0){
-                wallets.exchange[symbol] = balances[symbol];
-            }
-        });
 
-        return wallets;
+        return balances;
     }
 
     async fetchTradingFees (params = {}) {

@@ -560,9 +560,9 @@ module.exports = class bitfinex extends Exchange {
     initSymbol(symbol, balances){
         if (symbol in balances) return;
         balances[symbol] = {
-          exchange: {available: 0, on_orders: 0, total:0},
-          margin: {available: 0, on_orders: 0, total:0},
-          lending: {available: 0, on_orders: 0, total:0}
+            exchange: {available: 0, on_orders: 0, total:0},
+            margin: {available: 0, on_orders: 0, total:0},
+            lending: {available: 0, on_orders: 0, total:0}
         };
     }
 
@@ -616,7 +616,6 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostOffers ();
         const offers = [];
-        symbol = this.currencyId(symbol);
         response.forEach ((offer) => {
             let currency = this.commonCurrencyCode(offer['currency']);
             if (currency === symbol || symbol === undefined) {
@@ -626,7 +625,7 @@ module.exports = class bitfinex extends Exchange {
                     'rate': Number (offer['rate']) / 365 / 100,
                     'amount': Number (offer['original_amount']),
                     'duration': Number (offer['period']),
-                    'date': parseInt (offer['timestamp'])
+                    'date': parseInt (offer['timestamp']) * 1000
                 });
             }
         });
@@ -645,7 +644,7 @@ module.exports = class bitfinex extends Exchange {
                     'rate': parseFloat (offer['rate']) / 365 / 100,
                     'amount': parseFloat (offer['amount']),
                     'duration': parseFloat (offer['period']),
-                    'date': parseInt (offer['timestamp']) });
+                    'date': parseInt (offer['timestamp']) * 1000 });
         });
         return offers;
     }
@@ -666,7 +665,7 @@ module.exports = class bitfinex extends Exchange {
                     'duration': parseFloat (offer['period']),
                     'earned': earn - fee,
                     'fee_asc': fee,
-                    'date': parseInt (offer['timestamp']) });
+                    'date': parseInt (offer['timestamp']) * 1000 });
             }
         });
         return offers;
