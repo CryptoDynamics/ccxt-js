@@ -514,7 +514,7 @@ module.exports = class liquid extends Exchange {
         await this.loadMarkets();
         const request = {currency: symbol, quantity: amount, rate: rate * 100};
         let response = await this.privatePostLoanBids(this.extend(request));
-        if (renew === 0) await this.privatePutLoansId(this.extend({id: response.id, fund_reloaned: false}));
+        if (renew === 0) await this.privatePutLoansId(this.extend({id: response.id, loan: {"fund_reloaned": false}}));
         return {
             id: response.id,
             symbol: symbol,
