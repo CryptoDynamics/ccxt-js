@@ -393,8 +393,8 @@ module.exports = class poloniex extends Exchange {
         let offers = [];
 
         if (symbol === undefined) {
-            Object.keys(response).forEach(symbol => {
-                offers = offers.concat(this.parseOpenLoans(symbol, response[symbol]));
+            Object.keys(response).forEach(currencyId => {
+                offers = offers.concat(this.parseOpenLoans(currencyId, response[symbol]));
             });
         }else{
             if (currency in response){
@@ -424,8 +424,7 @@ module.exports = class poloniex extends Exchange {
         const offers = [];
         response['provided'].forEach (offer => {
             let currency =  this.commonCurrencyCode(offer['currency']);
-            let filter = (symbol === undefined || currency === symbol);
-            if (filter) {
+            if (symbol === undefined || currency === symbol) {
                 offers.push({
                     'id': offer['id'],
                     'symbol': currency,
@@ -439,21 +438,17 @@ module.exports = class poloniex extends Exchange {
         return offers;
     }
 
-    async fetchLoansHistory (start, end) {
-        const response = await this.privatePostReturnLendingHistory (this.extend ({ 'start': start, 'end': end }));
+    async fetchLoansHistory(from, to) {
+        const response = await this.privatePostReturnLendingHistory(this.extend({'start': from, 'end': to}));
         const offers = [];
         response.forEach ((offer) => {
-            const per = 2;
-            const earn = parseFloat (offer['earned']);
-            const fee = earn * per / 100;
             offers.push ({
                 'id': offer['id'],
                 'symbol': this.commonCurrencyCode(offer['currency']),
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['amount']),
                 'duration': Number (offer['duration']),
-                'earned': earn - fee,
-                'fee_asc': fee,
+                'earned': Number(offer['earned']),
                 'date': Date.parse (offer['close'])
             });
         });

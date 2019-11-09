@@ -649,28 +649,25 @@ module.exports = class bitfinex extends Exchange {
         return offers;
     }
 
-    async fetchLoansHistory (start, end) {
+    async fetchLoansHistory(from, to) {
         const response = await this.privatePostOffersHist ();
         const offers = [];
         response.forEach ((offer) => {
-            if (start < parseInt (offer['timestamp']) < end) {
-                const per = 2;
+            if (from <= parseInt(offer['timestamp']) * 1000 <= to) {
                 const earn = parseFloat (offer['rate']) / 365 * parseFloat (offer['period']) * parseFloat (offer['executed_amount']) / 100;
-                const fee = earn * per / 100;
                 offers.push ({
                     'id': offer['id'],
                     'symbol': this.commonCurrencyCode(offer['currency']),
-                    'rate': parseFloat (offer['rate']) / 365 / 100,
-                    'amount': parseFloat (offer['original_amount']),
-                    'duration': parseFloat (offer['period']),
-                    'earned': earn - fee,
-                    'fee_asc': fee,
-                    'date': parseInt (offer['timestamp']) * 1000 });
+                    'rate': Number(offer['rate']) / 365 / 100,
+                    'amount': Number(offer['original_amount']),
+                    'duration': Number(offer['period']),
+                    'earned': earn,
+                    'date': parseInt(offer['timestamp']) * 1000
+                });
             }
         });
         return offers;
     }
-
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         await this.loadMarkets ();

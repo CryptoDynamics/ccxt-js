@@ -449,7 +449,6 @@ module.exports = class liquid extends Exchange {
 
         for (let symbol of symbols){
             let response = await this.privateGetLoanBids({currency: symbol});
-
             for (let offer of response['models']){
                 if (offer['status'] === 'live') {
                     offers.push({
@@ -463,7 +462,6 @@ module.exports = class liquid extends Exchange {
                 }
             }
         }
-
         return offers;
     }
 
@@ -476,7 +474,6 @@ module.exports = class liquid extends Exchange {
 
         for (let symbol of symbols) {
             let response = await this.privateGetLoans(this.extend({currency: symbol}));
-            let offers = [];
             for (let offer of response['models']) {
                 if (offer['status'] === 'open')
                     offers.push({
@@ -492,7 +489,7 @@ module.exports = class liquid extends Exchange {
         return offers;
     }
 
-    async fetchLoansHistory(start, end){
+    async fetchLoansHistory(from, to) {
         let response = await this.privateGetLoanBids(this.extend({}));
         let offers = [];
         for (let offer of response['models']){
@@ -514,7 +511,7 @@ module.exports = class liquid extends Exchange {
         await this.loadMarkets();
         const request = {currency: symbol, quantity: amount, rate: rate * 100};
         let response = await this.privatePostLoanBids(this.extend(request));
-        if (renew === 0) await this.privatePutLoansId(this.extend({id: response.id, loan: {"fund_reloaned": false}}));
+        if (renew === 0) await this.privatePutLoansId(this.extend({id: response.id, fund_reloaned: false}));
         return {
             id: response.id,
             symbol: symbol,
@@ -527,12 +524,10 @@ module.exports = class liquid extends Exchange {
     }
 
     async cancelLoanOrder (id, params = {}) {
-        let response = await this.privatePutLoanBidsIdClose(this.extend({
-            id: id
-        }));
+        let response = await this.privatePutLoanBidsIdClose(this.extend({id: id}));
         return {
             date: Math.round(Date.now()),
-            amount: Number(response.quantity) - Number(response.filled_quantity)
+            amount: Number(response.filled_quantity)
         };
     }
 
