@@ -485,7 +485,7 @@ module.exports = class liquid extends Exchange {
                         'date': this.milliseconds()
                     });
                     if (offer['fund_reloaned']) await this.privatePutLoansId(this.extend({
-                        id: response.id,
+                        id: offer.id,
                         fund_reloaned: false
                     }));
                 }
