@@ -467,16 +467,16 @@ module.exports = class poloniex extends Exchange {
             'autoRenew': renew,
             'lendingRate': rate,
         }, params));
-        if (response.success)
-            return {
-                id: response.orderID,
-                symbol: symbol,
-                amount: Number(amount),
-                rate: Number(rate),
-                duration: Number(duration),
-                renew: Number(renew),
-                timestamp: Math.round(Date.now())
-            };
+
+        return {
+            id: response.orderID,
+            symbol: symbol,
+            amount: Number(amount),
+            rate: Number(rate),
+            duration: Number(duration),
+            renew: Number(renew),
+            timestamp: Math.round(Date.now())
+        };
     }
 
     async cancelLoanOrder (id, params = {}) {
@@ -1421,20 +1421,18 @@ module.exports = class poloniex extends Exchange {
         if (response === undefined) {
             return;
         }
-        // {"error":"Permission denied."}
         if ('error' in response) {
             const message = response['error'];
-            const feedback = this.json (response);
             const exact = this.exceptions['exact'];
             if (message in exact) {
-                throw new exact[message] (feedback);
+                throw new exact[message](message);
             }
             const broad = this.exceptions['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, message);
             if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
+                throw new broad[broadKey](message);
             }
-            throw new ExchangeError (feedback); // unknown message
+            throw new ExchangeError(message); // unknown message
         }
     }
 };

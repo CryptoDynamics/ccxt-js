@@ -1073,18 +1073,18 @@ module.exports = class binance extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+            throw new DDoSProtection(body);
         }
 
         if (code >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
-                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
+                throw new InvalidOrder(body);
             }
             if (body.indexOf ('LOT_SIZE') >= 0) {
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
+                throw new InvalidOrder(body);
             }
             if (body.indexOf ('PRICE_FILTER') >= 0) {
-                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder(body);
             }
         }
         if (body.length > 0) {
@@ -1110,22 +1110,22 @@ module.exports = class binance extends Exchange {
                 const message = this.safeString (response, 'msg');
                 if (message in exceptions) {
                     const ExceptionClass = exceptions[message];
-                    throw new ExceptionClass (this.id + ' ' + message);
+                    throw new ExceptionClass(message);
                 }
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
                     if (error in exceptions) {
 
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                            throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+                            throw new DDoSProtection(body);
                         }
-                        throw new exceptions[error] (this.id + ' ' + body);
+                        throw new exceptions[error](error);
                     } else {
-                        throw new ExchangeError (this.id + ' ' + body);
+                        throw new ExchangeError(body);
                     }
                 }
                 if (!success) {
-                    throw new ExchangeError (this.id + ' ' + body);
+                    throw new ExchangeError(body);
                 }
             }
         }

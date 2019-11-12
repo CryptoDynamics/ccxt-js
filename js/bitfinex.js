@@ -1333,14 +1333,14 @@ module.exports = class bitfinex extends Exchange {
                 }
                 const exact = this.exceptions['exact'];
                 if (message in exact) {
-                    throw new exact[message] (feedback);
+                    throw new exact[message](message);
                 }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);
                 if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
+                    throw new broad[broadKey](message);
                 }
-                throw new ExchangeError (feedback); // unknown message
+                throw new ExchangeError(message); // unknown message
             }
         }
     }

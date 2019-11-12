@@ -948,18 +948,18 @@ module.exports = class liquid extends Exchange {
         if (code === 401) {
             // expected non-json response
             if (body in exceptions) {
-                throw new exceptions[body] (this.id + ' ' + body);
+                throw new exceptions[body](body);
             } else {
                 return;
             }
         }
         if (code === 429) {
-            throw new DDoSProtection (this.id + ' ' + body);
+            throw new DDoSProtection(body);
         }
         if (response === undefined) {
             return;
         }
-        const feedback = this.id + ' ' + body;
+        const feedback = body;
         const message = this.safeString (response, 'message');
         const errors = this.safeValue (response, 'errors');
         if (message !== undefined) {
@@ -967,7 +967,7 @@ module.exports = class liquid extends Exchange {
             //  { "message": "Order not found" }
             //
             if (message in exceptions) {
-                throw new exceptions[message] (feedback);
+                throw new exceptions[message](message);
             }
         } else if (errors !== undefined) {
             //
@@ -982,7 +982,7 @@ module.exports = class liquid extends Exchange {
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
                     if (message in exceptions) {
-                        throw new exceptions[message] (feedback);
+                        throw new exceptions[message](message);
                     }
                 }
             }
