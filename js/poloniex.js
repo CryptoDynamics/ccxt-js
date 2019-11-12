@@ -413,7 +413,7 @@ module.exports = class poloniex extends Exchange {
                 'rate': Number(offer['rate']),
                 'amount': Number (offer['amount']),
                 'duration': Number (offer['duration']),
-                'date': Date.parse(offer['date'])
+                'timestamp': Date.parse(offer['date'])
             });
         });
         return offers;
@@ -431,7 +431,7 @@ module.exports = class poloniex extends Exchange {
                     'rate': Number(offer['rate']),
                     'amount': Number(offer['amount']),
                     'duration': Number(offer['duration']),
-                    'date': Date.parse(offer['date'])
+                    'timestamp': Date.parse(offer['date'])
                 });
             }
         });
@@ -452,7 +452,7 @@ module.exports = class poloniex extends Exchange {
                 'amount': Number (offer['amount']),
                 'duration': Number (offer['duration']),
                 'earned': Number(offer['earned']),
-                'date': Date.parse (offer['close'])
+                'timestamp': Date.parse(offer['close'])
             });
         });
         return offers;
@@ -475,14 +475,14 @@ module.exports = class poloniex extends Exchange {
                 rate: Number(rate),
                 duration: Number(duration),
                 renew: Number(renew),
-                date: Math.round(Date.now())
+                timestamp: Math.round(Date.now())
             };
     }
 
     async cancelLoanOrder (id, params = {}) {
         let response = await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': parseInt(id)}, params));
         return {
-            date: Math.round(Date.now()),
+            timestamp: Math.round(Date.now()),
             amount: response.amount
         };
     }

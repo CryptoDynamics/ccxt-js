@@ -457,7 +457,7 @@ module.exports = class liquid extends Exchange {
                         'rate': Number(offer['rate']) / 100,
                         'amount': Number(offer['quantity']),
                         'duration': 0,
-                        'date': this.milliseconds()
+                        'timestamp': this.milliseconds()
                     });
                 }
             }
@@ -482,7 +482,7 @@ module.exports = class liquid extends Exchange {
                         'rate': Number(offer['rate']) / 100,
                         'amount': Number(offer['quantity']),
                         'duration': 0,
-                        'date': this.milliseconds()
+                        'timestamp': this.milliseconds()
                     });
                     if (offer['fund_reloaned']) await this.privatePutLoansId(this.extend({
                         id: offer.id,
@@ -509,7 +509,7 @@ module.exports = class liquid extends Exchange {
                         'rate': Number(offer['rate']) / 100,
                         'amount': Number(offer['quantity']),
                         'duration': 0,
-                        'date': this.milliseconds()
+                        'timestamp': this.milliseconds()
                     });
                 }
             }
@@ -528,14 +528,14 @@ module.exports = class liquid extends Exchange {
             rate: Number(response.rate),
             duration: Number(duration),
             renew: Number(renew),
-            date: Date.now()
+            timestamp: Date.now()
         };
     }
 
     async cancelLoanOrder (id, params = {}) {
         let response = await this.privatePutLoanBidsIdClose(this.extend({id: id}));
         return {
-            date: Math.round(Date.now()),
+            timestamp: Math.round(Date.now()),
             amount: Number(response.quantity - response.filled_quantity)
         };
     }

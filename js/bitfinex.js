@@ -625,7 +625,7 @@ module.exports = class bitfinex extends Exchange {
                     'rate': Number (offer['rate']) / 365 / 100,
                     'amount': Number (offer['original_amount']),
                     'duration': Number (offer['period']),
-                    'date': parseInt (offer['timestamp']) * 1000
+                    'timestamp': parseInt(offer['timestamp']) * 1000
                 });
             }
         });
@@ -644,7 +644,8 @@ module.exports = class bitfinex extends Exchange {
                     'rate': parseFloat (offer['rate']) / 365 / 100,
                     'amount': parseFloat (offer['amount']),
                     'duration': parseFloat (offer['period']),
-                    'date': parseInt (offer['timestamp']) * 1000 });
+                    'timestamp': parseInt(offer['timestamp']) * 1000
+                });
         });
         return offers;
     }
@@ -662,7 +663,7 @@ module.exports = class bitfinex extends Exchange {
                     'amount': Number(offer['original_amount']),
                     'duration': Number(offer['period']),
                     'earned': earn,
-                    'date': parseInt(offer['timestamp']) * 1000
+                    'timestamp': parseInt(offer['timestamp']) * 1000
                 });
             }
         });
@@ -686,7 +687,7 @@ module.exports = class bitfinex extends Exchange {
             rate: Number(rate),
             duration: Number(duration),
             renew: Number(renew),
-            date: Date.now()
+            timestamp: Date.now()
         };
     }
 
@@ -694,7 +695,7 @@ module.exports = class bitfinex extends Exchange {
         let response = await this.privatePostOfferCancel (this.extend ({ 'offer_id': parseInt (id) }, params));
 
         return {
-            date: Date.now(),
+            timestamp: Date.now(),
             amount: response.remaining_amount
         };
     }
