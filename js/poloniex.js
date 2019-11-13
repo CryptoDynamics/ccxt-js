@@ -483,7 +483,7 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostCancelLoanOffer (this.extend ({'orderNumber': parseInt(id)}, params));
         return {
             timestamp: Math.round(Date.now()),
-            amount: response.amount
+            amount: Number(response.amount)
         };
     }
 
