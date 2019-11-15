@@ -641,10 +641,10 @@ module.exports = class bitfinex extends Exchange {
                 offers.push ({
                     'id': offer['id'],
                     'symbol': currency,
-                    'rate': parseFloat (offer['rate']) / 365 / 100,
-                    'amount': parseFloat (offer['amount']),
-                    'duration': parseFloat (offer['period']),
-                    'timestamp': parseInt(offer['timestamp']) * 1000
+                    'rate': Number(offer['rate']) / 365 / 100,
+                    'amount': Number(offer['amount']),
+                    'duration': Number(offer['period']),
+                    'timestamp': Number(offer['timestamp']) * 1000
                 });
         });
         return offers;
@@ -696,7 +696,7 @@ module.exports = class bitfinex extends Exchange {
 
         return {
             timestamp: Date.now(),
-            amount: response.remaining_amount
+            amount: Number(response.remaining_amount)
         };
     }
 
