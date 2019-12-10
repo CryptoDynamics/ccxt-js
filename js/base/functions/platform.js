@@ -14,8 +14,8 @@
 const isBrowser = typeof window !== 'undefined'
 
 const isElectron = typeof process !== 'undefined' &&
-                   typeof process.versions !== 'undefined' &&
-                   typeof process.versions.electron !== 'undefined'
+  typeof process.versions !== 'undefined' &&
+  typeof process.versions.electron !== 'undefined'
 
 const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof WorkerGlobalScope)
 
@@ -23,13 +23,16 @@ const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
 
+const defaultFetch = typeof (fetch) === "undefined" ? require('../../static_dependencies/fetch-ponyfill/fetch-node')().fetch : fetch
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
 
-    isBrowser,
-    isElectron,
-    isWebWorker,
-    isNode,
-    isWindows,
+  isBrowser,
+  isElectron,
+  isWebWorker,
+  isNode,
+  isWindows,
+  defaultFetch,
 }

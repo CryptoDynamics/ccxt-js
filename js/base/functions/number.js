@@ -1,9 +1,5 @@
 'use strict'
 
-const { isString, isNumber } = require ('./type')
-
-const { max } = Math
-
 /*  ------------------------------------------------------------------------
 
     NB: initially, I used objects for options passing:
@@ -17,8 +13,10 @@ const { max } = Math
 
             decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)                     */
 
-const ROUND    = 0                  // rounding mode
-    , TRUNCATE = 1
+const ROUND = 0                // rounding mode
+  , TRUNCATE = 1
+  , ROUND_UP = 2
+  , ROUND_DOWN = 3
 
 const DECIMAL_PLACES     = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
@@ -28,13 +26,15 @@ const NO_PADDING    = 0             // zero-padding mode
     , PAD_WITH_ZERO = 1
 
 const precisionConstants = {
-    ROUND,
-    TRUNCATE,
-    DECIMAL_PLACES,
-    SIGNIFICANT_DIGITS,
-    TICK_SIZE,
-    NO_PADDING,
-    PAD_WITH_ZERO,
+  ROUND,
+  TRUNCATE,
+  ROUND_UP,
+  ROUND_DOWN,
+  DECIMAL_PLACES,
+  SIGNIFICANT_DIGITS,
+  TICK_SIZE,
+  NO_PADDING,
+  PAD_WITH_ZERO,
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -43,7 +43,7 @@ const precisionConstants = {
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
 
-    if (isString (x)) return x
+  if (typeof x === 'string') return x
 
     if (Math.abs (x) < 1.0) {
         const s = x.toString ()
@@ -71,8 +71,8 @@ const truncate_regExpCache = []
     , truncate_to_string = (num, precision = 0) => {
         num = numberToString (num)
         if (precision > 0) {
-            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp ("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-            const [, result] = num.toString ().match (re) || [null, num]
+          const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+          const [, result] = num.toString().match(re) || [null, num]
             return result.toString ()
         }
         return parseInt (num).toString ()
@@ -86,27 +86,25 @@ function precisionFromString (string) {
 
 /*  ------------------------------------------------------------------------ */
 
-const decimalToPrecision = (
-    x, roundingMode
-    , numPrecisionDigits
-    , countingMode       = DECIMAL_PLACES
-    , paddingMode        = NO_PADDING
-) => {
+const decimalToPrecision = (x, roundingMode
+  , numPrecisionDigits
+  , countingMode = DECIMAL_PLACES
+  , paddingMode = NO_PADDING) => {
 
-    if (numPrecisionDigits < 0) {
-        if (countingMode === TICK_SIZE) {
-            throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
-        }
-        const toNearest = Math.pow (10, -numPrecisionDigits)
-        if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
-        }
-        if (roundingMode === TRUNCATE) {
+  if (numPrecisionDigits < 0) {
+    if (countingMode === TICK_SIZE) {
+      throw new Error(`TICK_SIZE cant be used with negative numPrecisionDigits`)
+    }
+    const toNearest = Math.pow(10, -numPrecisionDigits)
+    if (roundingMode === ROUND) {
+      return (toNearest * decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString()
+    }
+    if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ()
         }
     }
 
-    /*  handle tick size */
+  /*  handle tick size */
     if (countingMode === TICK_SIZE) {
         const missing = x % numPrecisionDigits
         const reminder = x / numPrecisionDigits
@@ -134,14 +132,14 @@ const decimalToPrecision = (
         return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
-    /*  Convert to a string (if needed), skip leading minus sign (if any)   */
+  /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
     const str          = numberToString (x)
         , isNegative   = str[0] === '-'
         , strStart     = isNegative ? 1 : 0
         , strEnd       = str.length
 
-    /*  Find the dot position in the source buffer   */
+  /*  Find the dot position in the source buffer   */
 
     for (var strDot = 0; strDot < strEnd; strDot++)
         if (str[strDot] === '.')
@@ -149,7 +147,7 @@ const decimalToPrecision = (
 
     const hasDot = strDot < str.length
 
-    /*  Char code constants         */
+  /*  Char code constants         */
 
     const MINUS =  45
         , DOT   =  46
@@ -158,16 +156,16 @@ const decimalToPrecision = (
         , FIVE  = (ZERO + 5)
         , NINE  = (ZERO + 9)
 
-    /*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
+  /*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
 
     const chars    = new Uint8Array ((strEnd - strStart) + (hasDot ? 0 : 1))
-    chars[0] = ZERO
+  chars[0] = ZERO
 
-    /*  Validate & copy digits, determine certain locations in the resulting buffer  */
+  /*  Validate & copy digits, determine certain locations in the resulting buffer  */
 
-    let afterDot    = chars.length
-        , digitsStart = -1                // significant digits
-        , digitsEnd   = -1
+  let afterDot = chars.length
+    , digitsStart = -1                // significant digits
+    , digitsEnd = -1
 
     for (var i = 1, j = strStart; j < strEnd; j++, i++) {
 
@@ -187,24 +185,24 @@ const decimalToPrecision = (
 
     if (digitsStart < 0) digitsStart = 1
 
-    /*  Determine the range to cut  */
+  /*  Determine the range to cut  */
 
-    let precisionStart = (countingMode === DECIMAL_PLACES) ? afterDot      // 0.(0)001234567
-            : digitsStart   // 0.00(1)234567
-        , precisionEnd = precisionStart +
-                       numPrecisionDigits
+  let precisionStart = (countingMode === DECIMAL_PLACES) ? afterDot      // 0.(0)001234567
+    : digitsStart   // 0.00(1)234567
+    , precisionEnd = precisionStart +
+    numPrecisionDigits
 
-    /*  Reset the last significant digit index, as it will change during the rounding/truncation.   */
+  /*  Reset the last significant digit index, as it will change during the rounding/truncation.   */
 
     digitsEnd = -1
 
-    /*  Perform rounding/truncation per digit, from digitsEnd to digitsStart, by using the following
-    algorithm (rounding 999 → 1000, as an example):
+  /*  Perform rounding/truncation per digit, from digitsEnd to digitsStart, by using the following
+      algorithm (rounding 999 → 1000, as an example):
 
-        step  =          i=3      i=2      i=1      i=0
+          step  =          i=3      i=2      i=1      i=0
 
-        chars =         0999     0999     0900     1000
-        memo  =         ---0     --1-     -1--     0---                     */
+          chars =         0999     0999     0900     1000
+          memo  =         ---0     --1-     -1--     0---                     */
 
     let allZeros = true;
     let signNeeded = isNegative;
@@ -238,69 +236,71 @@ const decimalToPrecision = (
         }
     }
 
-    /*  Update the precision range, as `digitsStart` may have changed... & the need for a negative sign if it is only 0    */
+  /*  Update the precision range, as `digitsStart` may have changed... & the need for a negative sign if it is only 0    */
 
     if (countingMode === SIGNIFICANT_DIGITS) {
         precisionStart = digitsStart
-        precisionEnd   = precisionStart + numPrecisionDigits
+      precisionEnd = precisionStart + numPrecisionDigits
     }
 
-    if (allZeros) {
-        signNeeded = false
-    }
+  if (allZeros) {
+    signNeeded = false
+  }
 
-    /*  Determine the input character range     */
+  /*  Determine the input character range     */
 
-    const readStart     = ((digitsStart >= afterDot) || allZeros) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234
-        , readEnd       = (digitsEnd    < afterDot) ? (afterDot) : digitsEnd   // 12(3)000     ----> 123000( )
+  const readStart = ((digitsStart >= afterDot) || allZeros) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234
+    , readEnd = (digitsEnd < afterDot) ? (afterDot) : digitsEnd   // 12(3)000     ----> 123000( )
 
-    /*  Compute various sub-ranges       */
+  /*  Compute various sub-ranges       */
 
-    const nSign         =     (signNeeded ? 1 : 0)                // (-)123.456
-        , nBeforeDot    =     (nSign + (afterDot - readStart))    // (-123).456
-        , nAfterDot     = max (readEnd - afterDot, 0)             // -123.(456)
-        , actualLength  =     (readEnd - readStart)               // -(123.456)
-        , desiredLength =     (paddingMode === NO_PADDING)
-            ? (actualLength)              // -(123.456)
-            : (precisionEnd - readStart)  // -(123.456    )
+  const nSign = (signNeeded ? 1 : 0)                // (-)123.456
+    , nBeforeDot = (nSign + (afterDot - readStart))    // (-123).456
+    , nAfterDot = Math.max(readEnd - afterDot, 0)             // -123.(456)
+    , actualLength = (readEnd - readStart)               // -(123.456)
+    , desiredLength = (paddingMode === NO_PADDING)
+    ? (actualLength)                // -(123.456)
+    : (precisionEnd - readStart)    // -(123.456    )
 
-        , pad           = max (desiredLength - actualLength, 0)   //  -123.456(    )
-        , padStart      =     (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
-        , padEnd        =     (padStart + pad)                    //  -123.456     ( )
-        , isInteger     =     (nAfterDot + pad) === 0             //  -123
+    , pad = Math.max(desiredLength - actualLength, 0)   //  -123.456(    )
+    , padStart = (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
+    , padEnd = (padStart + pad)                    //  -123.456     ( )
+    , isInteger = (nAfterDot + pad) === 0             //  -123
 
-    /*  Fill the output buffer with characters    */
+  /*  Fill the output buffer with characters    */
 
-    const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad);
-    // ---------------------
-    if  (signNeeded)                                out[0]          = MINUS     // -     minus sign
-    for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
-    if  (!isInteger)                                                  out[nBeforeDot] = DOT       // .     dot
-    for (i = nBeforeDot + 1, j = afterDot;  i < padStart;   i++, j++) out[i]          = chars[j]  // 456   after dot
-    for (i = padStart;                      i < padEnd;     i++)      out[i]          = ZERO      // 000   padding
+  const out = new Uint8Array(nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
+  // ------------------------------------------------------------------------------------------ // ---------------------
+  if (signNeeded) out[0] = MINUS     // -     minus sign
+  for (i = nSign, j = readStart; i < nBeforeDot; i++, j++) out[i] = chars[j]  // 123   before dot
+  if (!isInteger) out[nBeforeDot] = DOT       // .     dot
+  for (i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) out[i] = chars[j]  // 456   after dot
+  for (i = padStart; i < padEnd; i++) out[i] = ZERO      // 000   padding
 
-    /*  Build a string from the output buffer     */
+  /*  Build a string from the output buffer     */
 
-    return String.fromCharCode (...out)
-};
+  return String.fromCharCode(...out)
+}
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
 
-    numberToString,
-    precisionFromString,
-    decimalToPrecision,
-    truncate_to_string,
-    truncate,
-    precisionConstants,
-    ROUND,
-    TRUNCATE,
-    DECIMAL_PLACES,
-    SIGNIFICANT_DIGITS,
-    TICK_SIZE,
-    NO_PADDING,
-    PAD_WITH_ZERO,
-};
+  numberToString,
+  precisionFromString,
+  decimalToPrecision,
+  truncate_to_string,
+  truncate,
+  precisionConstants,
+  ROUND,
+  TRUNCATE,
+  ROUND_UP,
+  ROUND_DOWN,
+  DECIMAL_PLACES,
+  SIGNIFICANT_DIGITS,
+  TICK_SIZE,
+  NO_PADDING,
+  PAD_WITH_ZERO,
+}
 
 /*  ------------------------------------------------------------------------ */

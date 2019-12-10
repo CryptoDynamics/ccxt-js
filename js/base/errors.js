@@ -1,87 +1,51 @@
 'use strict';
 
-/*  ------------------------------------------------------------------------ */
-
-module.exports = subclass (
-
-/*  Root class                  */
-
-    Error,
-
-    /*  Derived class hierarchy     */
-
-    {
-        'BaseError':{
-            'ExchangeError': {
-                'AuthenticationError': {
-                    'PermissionDenied': {},
-                    'AccountSuspended': {},
-                },
-                'ArgumentsRequired': {},
-                'BadRequest': {},
-                'BadResponse': {
-                    'NullResponse': {},
-                },
-                'InsufficientFunds': {},
-                'InvalidAddress': {
-                    'AddressPending': {},
-                },
-                'InvalidOrder': {
-                    'OrderNotFound': {},
-                    'OrderNotCached': {},
-                    'CancelPending': {},
-                    'OrderImmediatelyFillable': {},
-                    'OrderNotFillable': {},
-                    'DuplicateOrderId': {},
-                },
-                'NotSupported': {},
-            },
-            'NetworkError': {
-                'DDoSProtection': {},
-                'ExchangeNotAvailable': {},
-                'InvalidNonce': {},
-                'RequestTimeout': {},
-            },
-        },
-    }
-)
+const errorHierarchy = require('./errorHierarchy.js')
 
 /*  ------------------------------------------------------------------------ */
 
 function subclass (BaseClass, classes, namespace = {}) {
 
-    for (const [$class, subclasses] of Object.entries (classes)) {
+  for (const [className, subclasses] of Object.entries(classes)) {
 
-        const Class = Object.assign (namespace, {
+    const Class = Object.assign(namespace, {
 
-        /*  By creating a named property, we trick compiler to assign our class constructor function a name.
-            Otherwise, all our error constructors would be shown as [Function: Error] in the debugger! And
-            the super-useful `e.constructor.name` magic wouldn't work — we then would have no chance to
-            obtain a error type string from an error instance programmatically!                               */
+      /*  By creating a named property, we trick compiler to assign our class constructor function a name.
+          Otherwise, all our error constructors would be shown as [Function: Error] in the debugger! And
+          the super-useful `e.constructor.name` magic wouldn't work — we then would have no chance to
+          obtain a error type string from an error instance programmatically!                               */
 
-            [$class]: class extends BaseClass {
+      [className]: class extends BaseClass {
 
-                constructor (message) {
+        constructor(message) {
 
-                    super (message)
+          super(message)
 
-                    /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
-                    See my blog post for the explanation of this hack:
+          /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
+              See my blog post for the explanation of this hack:
 
-                    https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
+              https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
 
-                    this.constructor = Class
-                    this.__proto__   = Class.prototype
-                    this.message     = message
-                }
-            }
+          this.constructor = Class
+          this.__proto__ = Class.prototype
+          this.name = className
+          this.message = message
+        }
+      }
 
-        })[$class]
+    })[className]
 
-        subclass (Class, subclasses, namespace)
-    }
+    subclass(Class, subclasses, namespace)
+  }
 
-    return namespace
+  return namespace
 }
 
 /*  ------------------------------------------------------------------------ */
+
+module.exports = subclass(
+  // Root class
+  Error,
+  // Derived class hierarchy
+  errorHierarchy
+)

@@ -444,16 +444,26 @@ module.exports = class binance extends Exchange {
         return [
             ohlcv[0],
             parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[5]),
+            parseFloat(ohlcv[2]),
+            parseFloat(ohlcv[3]),
+            parseFloat(ohlcv[4]),
+            parseFloat(ohlcv[5]),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let candles = [];
+
+        while (candles.length < limit) {
+            candles.concat(await this.fetchOHLCVMAX(market, timeframe, candles[candles.length - 1], limit - candles.length + 1));
+        }
+
+        return candles;
+    }
+
+    async fetchOHLCVMAX(market, timeframe, since, limit) {
         const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
