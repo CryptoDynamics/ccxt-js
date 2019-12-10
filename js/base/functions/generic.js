@@ -71,7 +71,6 @@ module.exports =
           { someKey: 'value3', anotherKey: 'anotherValue3' },
        ]
        key = 'someKey'
-
        Returns a map:
       {
           value1: { someKey: 'value1', anotherKey: 'anotherValue1' },
@@ -99,7 +98,6 @@ module.exports =
           { someKey: 'value3', anotherKey: 'anotherValue3' },
        ]
        key = 'someKey'
-
        Returns a map:
       {
           value1: [
@@ -135,7 +133,6 @@ module.exports =
        ]
        key = 'someKey'
        value = 'value1'
-
        Returns an array:
       [
           value1: { someKey: 'value1', anotherKey: 'anotherValue1' },
@@ -153,93 +150,85 @@ module.exports =
 
     /*  .............................................   */
 
-    , sortBy: (array, // NB: MUTATES ARRAY!
-      key,
-      descending = false,
-      direction = descending ? -1 : 1)
-=>
-array.sort((a, b) =>
-  ((a[key] < b[key]) ? -direction :
-    ((a[key] > b[key]) ? direction : 0)))
-
-  /*  .............................................   */
-
-  , flatten
-:
-
-function flatten(x, out = []) {
-
-  for (const v of x) {
-    if (isArray(v)) flatten(v, out)
-    else out.push(v)
-  }
-
-  return out
-}
-
-/*  .............................................   */
-
-,
-pluck: (x, k) => values(x)
-  .filter(v => k in v)
-  .map(v => v[k])
-
-  /*  .............................................   */
-
-  , omit(x, ...args)
-{
-
-  if (!Array.isArray(x)) {
-
-    const out = clone(x)
-
-    for (const k of args) {
-
-      if (isArray(k)) { // omit (x, ['a', 'b'])
-
-        for (const kk of k) {
-          delete out[kk]
-        }
-      } else delete out[k] // omit (x, 'a', 'b')
+    , sortBy: function (array, // NB: MUTATES ARRAY!
+                        key,
+                        descending = false,
+                        direction = descending ? -1 : 1) {
+      return array.sort((a, b) =>
+        ((a[key] < b[key]) ? -direction :
+          ((a[key] > b[key]) ? direction : 0)))
     }
 
-    return out
-  }
+    /*  .............................................   */
 
-  return x
-}
+    , flatten: function flatten(x, out = []) {
 
-/*  .............................................   */
+      for (const v of x) {
+        if (isArray(v)) flatten(v, out)
+        else out.push(v)
+      }
 
-,
-sum(...xs)
-{
+      return out
+    }
 
-  const ns = xs.filter(isNumber) // leave only numbers
+    /*  .............................................   */
 
-  return (ns.length > 0)
-    ? ns.reduce((a, b) => a + b, 0)
-    : undefined
-}
+    , pluck: (x, k) => values(x)
+      .filter(v => k in v)
+      .map(v => v[k])
 
-/*  .............................................   */
+    /*  .............................................   */
 
-,
-deepExtend: function deepExtend(...xs) {
+    , omit(x, ...args) {
 
-  let out = undefined
+      if (!Array.isArray(x)) {
 
-  for (const x of xs) {
+        const out = clone(x)
 
-    if (isDictionary(x)) {
+        for (const k of args) {
 
-      if (!isObject(out))
-        out = {}
+          if (isArray(k)) { // omit (x, ['a', 'b'])
 
-      for (const k in x)
-        out[k] = deepExtend(out[k], x[k])
+            for (const kk of k) {
+              delete out[kk]
+            }
+          } else delete out[k] // omit (x, 'a', 'b')
+        }
 
-    } else out = x
+        return out
+      }
+
+      return x
+    }
+
+    /*  .............................................   */
+
+    , sum(...xs) {
+
+      const ns = xs.filter(isNumber) // leave only numbers
+
+      return (ns.length > 0)
+        ? ns.reduce((a, b) => a + b, 0)
+        : undefined
+    }
+
+    /*  .............................................   */
+
+    , deepExtend: function deepExtend(...xs) {
+
+      let out = undefined
+
+      for (const x of xs) {
+
+        if (isDictionary(x)) {
+
+          if (!isObject(out))
+            out = {}
+
+          for (const k in x)
+            out[k] = deepExtend(out[k], x[k])
+
+        } else out = x
   }
 
   return out
