@@ -1,28 +1,4 @@
 {
-  "_from": "ccxt",
-  "_id": "ccxt@1.18.636",
-  "_inBundle": false,
-  "_integrity": "sha512-zKZkUIwoAYwVCk8/M7lHSLSzkMa1yUbg7Euo3Bnr3zDkBvFdvIEyI22AC+GgA6y7ZIg0dQFYHgBR+ZNpkBP22g==",
-  "_location": "/ccxt",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "ccxt",
-    "name": "ccxt",
-    "escapedName": "ccxt",
-    "rawSpec": "",
-    "saveSpec": null,
-    "fetchSpec": "latest"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/ccxt/-/ccxt-1.18.636.tgz",
-  "_shasum": "f5504e680b575c0acb9525adc30bdb5977b8da18",
-  "_spec": "ccxt",
-  "_where": "C:\\Users\\salah\\Desktop\\terminal",
   "author": {
     "name": "Igor Kroitor",
     "email": "igor.kroitor@gmail.com",
@@ -64,8 +40,7 @@
     "type": "git",
     "url": "git+https://github.com/CryptoDynamics/ccxt-js.git"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "types": "./ccxt.d.ts",
-  "version": "1.18.636"
+  "version": "1.20.66"
 }

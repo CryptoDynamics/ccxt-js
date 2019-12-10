@@ -73,7 +73,7 @@ const truncate_regExpCache = []
         if (precision > 0) {
           const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
           const [, result] = num.toString().match(re) || [null, num]
-            return result.toString ()
+          return result.toString()
         }
         return parseInt (num).toString ()
     }
@@ -100,16 +100,16 @@ const decimalToPrecision = (x, roundingMode
       return (toNearest * decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString()
     }
     if (roundingMode === TRUNCATE) {
-            return (x - (x % toNearest)).toString ()
-        }
+      return (x - (x % toNearest)).toString()
     }
+  }
 
   /*  handle tick size */
-    if (countingMode === TICK_SIZE) {
-        const missing = x % numPrecisionDigits
-        const reminder = x / numPrecisionDigits
-        if (reminder !== Math.floor (reminder)) {
-            if (roundingMode === ROUND) {
+  if (countingMode === TICK_SIZE) {
+    const missing = x % numPrecisionDigits
+    const reminder = x / numPrecisionDigits
+    if (reminder !== Math.floor(reminder)) {
+      if (roundingMode === ROUND) {
                 if (x > 0) {
                     if (missing >= numPrecisionDigits / 2) {
                         x = x - missing + numPrecisionDigits
@@ -153,12 +153,12 @@ const decimalToPrecision = (x, roundingMode
         , DOT   =  46
         , ZERO  =  48
         , ONE   = (ZERO + 1)
-        , FIVE  = (ZERO + 5)
-        , NINE  = (ZERO + 9)
+      , FIVE = (ZERO + 5)
+      , NINE = (ZERO + 9)
 
   /*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
 
-    const chars    = new Uint8Array ((strEnd - strStart) + (hasDot ? 0 : 1))
+  const chars = new Uint8Array((strEnd - strStart) + (hasDot ? 0 : 1))
   chars[0] = ZERO
 
   /*  Validate & copy digits, determine certain locations in the resulting buffer  */
@@ -167,23 +167,23 @@ const decimalToPrecision = (x, roundingMode
     , digitsStart = -1                // significant digits
     , digitsEnd = -1
 
-    for (var i = 1, j = strStart; j < strEnd; j++, i++) {
+  for (var i = 1, j = strStart; j < strEnd; j++, i++) {
 
-        const c = str.charCodeAt (j)
+    const c = str.charCodeAt(j)
 
-        if (c === DOT) {
-            afterDot = i--
+    if (c === DOT) {
+      afterDot = i--
 
-        } else if ((c < ZERO) || (c > NINE)) {
-            throw new Error (`${str}: invalid number (contains an illegal character '${str[i - 1]}')`)
+    } else if ((c < ZERO) || (c > NINE)) {
+      throw new Error(`${str}: invalid number (contains an illegal character '${str[i - 1]}')`)
 
-        } else {
-            chars[i] = c
-            if ((c !== ZERO) && (digitsStart < 0)) digitsStart = i
-        }
+    } else {
+      chars[i] = c
+      if ((c !== ZERO) && (digitsStart < 0)) digitsStart = i
     }
+  }
 
-    if (digitsStart < 0) digitsStart = 1
+  if (digitsStart < 0) digitsStart = 1
 
   /*  Determine the range to cut  */
 
@@ -194,7 +194,7 @@ const decimalToPrecision = (x, roundingMode
 
   /*  Reset the last significant digit index, as it will change during the rounding/truncation.   */
 
-    digitsEnd = -1
+  digitsEnd = -1
 
   /*  Perform rounding/truncation per digit, from digitsEnd to digitsStart, by using the following
       algorithm (rounding 999 → 1000, as an example):
@@ -238,10 +238,10 @@ const decimalToPrecision = (x, roundingMode
 
   /*  Update the precision range, as `digitsStart` may have changed... & the need for a negative sign if it is only 0    */
 
-    if (countingMode === SIGNIFICANT_DIGITS) {
-        precisionStart = digitsStart
-      precisionEnd = precisionStart + numPrecisionDigits
-    }
+  if (countingMode === SIGNIFICANT_DIGITS) {
+    precisionStart = digitsStart
+    precisionEnd = precisionStart + numPrecisionDigits
+  }
 
   if (allZeros) {
     signNeeded = false

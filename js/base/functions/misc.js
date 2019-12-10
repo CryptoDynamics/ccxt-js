@@ -12,14 +12,14 @@ const parseTimeframe = (timeframe) => {
   let scale = undefined;
 
   if (unit === 'y') {
-        scale = 60 * 60 * 24 * 365
-    } else if (unit === 'M') {
-        scale = 60 * 60 * 24 * 30
-    } else if (unit === 'w') {
-        scale = 60 * 60 * 24 * 7
-    } else if (unit === 'd') {
-        scale = 60 * 60 * 24
-    } else if (unit === 'h') {
+    scale = 60 * 60 * 24 * 365
+  } else if (unit === 'M') {
+    scale = 60 * 60 * 24 * 30
+  } else if (unit === 'w') {
+    scale = 60 * 60 * 24 * 7
+  } else if (unit === 'd') {
+    scale = 60 * 60 * 24
+  } else if (unit === 'h') {
     scale = 60 * 60
   } else if (unit === 'm') {
     scale = 60
@@ -48,30 +48,30 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
 
   for (let i = 0; i <= oldest; i++) {
     const trade = trades[i];
-        if (trade.timestamp < since)
-            continue;
-        const openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
-        const candle = ohlcvs.length - 1;
+    if (trade.timestamp < since)
+      continue;
+    const openingTime = Math.floor(trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
+    const candle = ohlcvs.length - 1;
 
-        if (candle === -1 || openingTime >= ohlcvs[candle][timestamp] + ms) {
-            // moved to a new timeframe -> create a new candle from opening trade
-            ohlcvs.push ([
-                openingTime,  // timestamp
-                trade.price,  // O
+    if (candle === -1 || openingTime >= ohlcvs[candle][timestamp] + ms) {
+      // moved to a new timeframe -> create a new candle from opening trade
+      ohlcvs.push([
+        openingTime,  // timestamp
+        trade.price,  // O
                 trade.price,  // H
                 trade.price,  // L
                 trade.price,  // C
                 trade.amount, // V
-                1,            // count
-            ]);
-        } else {
-            // still processing the same timeframe -> update opening trade
-          ohlcvs[candle][high] = Math.max(ohlcvs[candle][high], trade.price);
-          ohlcvs[candle][low] = Math.min(ohlcvs[candle][low], trade.price);
-          ohlcvs[candle][close] = trade.price;
-          ohlcvs[candle][volume] += trade.amount;
-          ohlcvs[candle][count]++;
-        } // if
+        1,            // count
+      ]);
+    } else {
+      // still processing the same timeframe -> update opening trade
+      ohlcvs[candle][high] = Math.max(ohlcvs[candle][high], trade.price);
+      ohlcvs[candle][low] = Math.min(ohlcvs[candle][low], trade.price);
+      ohlcvs[candle][close] = trade.price;
+      ohlcvs[candle][volume] += trade.amount;
+      ohlcvs[candle][count]++;
+    } // if
   } // for
   return ohlcvs;
 }

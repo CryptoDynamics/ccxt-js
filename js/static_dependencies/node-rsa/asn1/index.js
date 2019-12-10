@@ -3,13 +3,14 @@
 // If you have no idea what ASN.1 or BER is, see this:
 // ftp://ftp.rsa.com/pub/pkcs/ascii/layman.asc
 
-const Ber = require ('./ber/index');
+var Ber = require('./ber/index');
+
 
 // --- Exported API
 
 module.exports = {
 
-    'Ber': Ber,
+  Ber: Ber,
 
-    'BerReader': Ber.Reader,
+  BerReader: Ber.Reader,
 };

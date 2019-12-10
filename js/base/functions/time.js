@@ -69,8 +69,8 @@ const iso8601 = (timestamp) => {
   try {
     return new Date(_timestampNumber).toISOString();
   } catch (e) {
-        return undefined;
-    }
+    return undefined;
+  }
 }
 
 const parse8601 = (x) => {
@@ -179,10 +179,10 @@ module.exports =
         return await Promise.race([promise, expires.then(() => {
           throw new TimedOut()
         })])
-            } finally {
-                clear () // fixes https://github.com/ccxt/ccxt/issues/749
-            }
-        }
+      } finally {
+        clear() // fixes https://github.com/ccxt/ccxt/issues/749
+      }
+    }
   }
 
 /*  ------------------------------------------------------------------------ */

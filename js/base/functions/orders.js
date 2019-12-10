@@ -27,16 +27,16 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
     result.push(order);
     if (!(id in openOrdersIndexedById)) {
       // cached order is not in open orders array
-            // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-            if (symbol !== undefined && symbol !== order['symbol'])
-                continue;
-            // order is cached but not present in the list of open orders -> mark the cached order as closed
-            if (order['status'] === 'open') {
-                order = this.extend (order, {
-                    'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                    'cost': undefined,
-                    'filled': order['amount'],
-                    'remaining': 0.0,
+      // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
+      if (symbol !== undefined && symbol !== order['symbol'])
+        continue;
+      // order is cached but not present in the list of open orders -> mark the cached order as closed
+      if (order['status'] === 'open') {
+        order = this.extend(order, {
+          'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
+          'cost': undefined,
+          'filled': order['amount'],
+          'remaining': 0.0,
                 });
                 if (order['cost'] === undefined) {
                     if (order['filled'] !== undefined)
