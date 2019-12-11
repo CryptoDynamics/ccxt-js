@@ -471,11 +471,13 @@ module.exports = class binance extends Exchange {
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let candles = [];
+        let candles = [[since]];
 
         while (candles.length < limit) {
-            candles.concat(await this.fetchOHLCVMAX(market, timeframe, candles[candles.length - 1][0], limit - candles.length + 1));
+            let tmpCandles = await this.fetchOHLCVMAX(market, timeframe, candles[candles.length - 1][0], limit - candles.length + 2);
+            candles = candles.concat(tmpCandles);
         }
+        candles.splice(0, 1);
 
         return candles;
     }
@@ -491,7 +493,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const response = await this.v3publicGetKlines (this.extend (request, params));
+        const response = await this.v3publicGetKlines (this.extend (request, {}));
 
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
