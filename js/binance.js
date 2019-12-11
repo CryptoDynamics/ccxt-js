@@ -394,7 +394,14 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'closeTime');
-        const symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
@@ -415,7 +422,7 @@ module.exports = class binance extends Exchange {
             'percentage': this.safeFloat (ticker, 'priceChangePercent'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume')
         };
     }
 
@@ -467,7 +474,7 @@ module.exports = class binance extends Exchange {
         let candles = [];
 
         while (candles.length < limit) {
-            candles.concat(await this.fetchOHLCVMAX(market, timeframe, candles[candles.length - 1], limit - candles.length + 1));
+            candles.concat(await this.fetchOHLCVMAX(market, timeframe, candles[candles.length - 1][0], limit - candles.length + 1));
         }
 
         return candles;
