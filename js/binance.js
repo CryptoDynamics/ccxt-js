@@ -375,10 +375,20 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        const limits = [5, 10, 20, 50, 100, 500, 1000, 5000];
+        let countRemove = 0;
         if (limit !== undefined) {
-            request['limit'] = limit; // default = maximum = 100
+            for (let lim of limits){
+                if (lim >= limit){
+                    countRemove = lim - limit;
+                    request['limit'] = lim;
+                    break;
+                }
+            }
         }
-        const response = await this.v3publicGetDepth (this.extend (request, params));
+        let response = await this.v3publicGetDepth (this.extend (request, params));
+        response.bids.splice(limit, countRemove);
+        response.asks.splice(0, countRemove);
         return this.parseOrderBook (response);
     }
 
