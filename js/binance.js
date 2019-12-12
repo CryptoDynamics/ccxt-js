@@ -587,26 +587,36 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        const status = this.parseOrderStatus(this.safeString(order, 'status'));
+        let symbol = undefined;
+        const marketId = this.safeString(order, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let timestamp = undefined;
         if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
+            timestamp = this.safeInteger(order, 'time');
         } else if ('transactTime' in order) {
-            timestamp = this.safeInteger (order, 'transactTime');
+            timestamp = this.safeInteger(order, 'transactTime');
         }
-        let price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'origQty');
-        const filled = Number(order['executedQty']);
+        let price = this.safeFloat(order, 'price');
+        const amount = this.safeFloat(order, 'origQty');
+        const filled = this.safeFloat(order, 'executedQty');
         let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        // - Spot/Margin market: cummulativeQuoteQty
+        // - Futures market: cumQuote.
+        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        let cost = this.safeFloat2(order, 'cummulativeQuoteQty', 'cumQuote');
         if (filled !== undefined) {
             if (amount !== undefined) {
                 remaining = amount - filled;
                 if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                    remaining = parseFloat(this.amountToPrecision(symbol, remaining));
                 }
-                remaining = Math.max (remaining, 0.0);
+                remaining = Math.max(remaining, 0.0);
             }
             if (price !== undefined) {
                 if (cost === undefined) {
@@ -614,55 +624,55 @@ module.exports = class binance extends Exchange {
                 }
             }
         }
-        const id = this.safeString (order, 'orderId');
-        let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-            if (type === 'market') {
-                if (price === 0.0) {
-                    if ((cost !== undefined) && (filled !== undefined)) {
-                        if ((cost > 0) && (filled > 0)) {
-                            price = cost / filled;
+        const id = this.safeString(order, 'orderId');
+        const type = this.safeStringLower(order, 'type');
+        if (type === 'market') {
+            if (price === 0.0) {
+                if ((cost !== undefined) && (filled !== undefined)) {
+                    if ((cost > 0) && (filled > 0)) {
+                        price = cost / filled;
+                        if (this.options['parseOrderToPrecision']) {
+                            price = parseFloat(this.priceToPrecision(symbol, price));
                         }
                     }
                 }
             }
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
+        const side = this.safeStringLower(order, 'side');
+        let fee = undefined;
+        let trades = undefined;
+        const fills = this.safeValue(order, 'fills');
+        if (fills !== undefined) {
+            trades = this.parseTrades(fills, market);
+            const numTrades = trades.length;
+            if (numTrades > 0) {
+                cost = trades[0]['cost'];
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                };
+                for (let i = 1; i < trades.length; i++) {
+                    cost = this.sum(cost, trades[i]['cost']);
+                    fee['cost'] = this.sum(fee['cost'], trades[i]['fee']['cost']);
+                }
+            }
         }
-        // let fee = undefined;
-        // let trades = undefined;
-        // const fills = this.safeValue (order, 'fills');
-        // if (fills !== undefined) {
-        //     trades = this.parseTrades (fills, market);
-        //     const numTrades = trades.length;
-        //     if (numTrades > 0) {
-        //         cost = trades[0]['cost'];
-        //         fee = {
-        //             'cost': trades[0]['fee']['cost'],
-        //             'currency': trades[0]['fee']['currency'],
-        //         };
-        //         for (let i = 1; i < trades.length; i++) {
-        //             cost = this.sum (cost, trades[i]['cost']);
-        //             fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
-        //         }
-        //     }
-        // }
-        // let average = undefined;
-        // if (cost !== undefined) {
-        //     if (filled) {
-        //         average = cost / filled;
-        //     }
-        //     if (this.options['parseOrderToPrecision']) {
-        //         cost = parseFloat (this.costToPrecision (symbol, cost));
-        //     }
-        // }
+        let average = undefined;
+        if (cost !== undefined) {
+            if (filled) {
+                average = cost / filled;
+                if (this.options['parseOrderToPrecision']) {
+                    average = parseFloat(this.priceToPrecision(symbol, average));
+                }
+            }
+            if (this.options['parseOrderToPrecision']) {
+                cost = parseFloat(this.costToPrecision(symbol, cost));
+            }
+        }
         return {
             'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -670,11 +680,12 @@ module.exports = class binance extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': 0,
-            'trades': [],
+            'fee': fee,
+            'trades': trades,
         };
     }
 
