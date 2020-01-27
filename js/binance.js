@@ -702,7 +702,7 @@ module.exports = class binance extends Exchange {
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         const request = {
             'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (symbol, Number(amount)),
             'type': uppercaseType,
             'side': side.toUpperCase (),
             'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -726,7 +726,7 @@ module.exports = class binance extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, Number(price));
         }
         if (timeInForceIsRequired) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
