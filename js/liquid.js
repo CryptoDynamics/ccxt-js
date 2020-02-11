@@ -519,12 +519,10 @@ module.exports = class liquid extends Exchange {
 
     async createLoanOrder (symbol, amount, rate, duration, renew = 0, params = {}) {
         await this.loadMarkets();
-        console.log(rate);
         rate = Number((rate).toFixed(5));
         if (rate > 0.0007) {
             rate = 0.0007;
         }
-        console.log(rate);
         const request = {currency: symbol, quantity: amount, rate };
         let response = await this.privatePostLoanBids(this.extend(request));
         return {
