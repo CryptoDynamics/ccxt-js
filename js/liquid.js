@@ -523,6 +523,7 @@ module.exports = class liquid extends Exchange {
         if (rate > 0.07) {
             rate = 0.07;
         }
+        console.log(rate);
         const request = {currency: symbol, quantity: amount, rate };
         let response = await this.privatePostLoanBids(this.extend(request));
         return {
