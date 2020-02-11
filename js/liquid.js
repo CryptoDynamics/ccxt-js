@@ -433,7 +433,7 @@ module.exports = class liquid extends Exchange {
             if (offers.length >= count) return false;
 
             offers.push ({
-                'rate': Number(offer[0]) / 100,
+                'rate': Number(offer[0]),
                 'amount': Number(offer[1]),
             });
         });
